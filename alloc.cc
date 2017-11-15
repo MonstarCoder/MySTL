@@ -70,7 +70,7 @@ void* alloc::refill(size_t n) {
     for (int i = 1; ; ++i) {
         current_obj = next_obj;
         next_obj = (obj *)(char *)(next_obj + n);
-        if (nobjs - 1 == i) {
+        if (i = nobjs - 1) {
             current_obj->free_list_link = 0;
             break;
         } else {
@@ -122,7 +122,7 @@ char *alloc::chunk_alloc(size_t size, int& nobjs) { //内存池
                     *my_free_list = p->free_list_link;
                     start_free = (char *)p;
                     end_free = start_free + i;
-                    //递归调动自己，调整nobjs
+                    //递归调用自己，调整nobjs
                     return (chunk_alloc(size, nobjs));
                 }
             }
@@ -132,7 +132,7 @@ char *alloc::chunk_alloc(size_t size, int& nobjs) { //内存池
         }
         heap_size += bytes_to_get;
         end_free = start_free + bytes_to_get;
-        //低估调用自己，调整nobjs
+        //递归调用自己，调整nobjs
         return chunk_alloc(size, nobjs);
     }
 }
