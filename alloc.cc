@@ -65,11 +65,11 @@ void* alloc::refill(size_t n) {
     }
     //否则准备调整新节点
     my_free_list = free_list + FREELIST_INDEX(n);
-    result = (obj *)(chunk); //返回给客端
-    *my_free_list = next_obj = (obj *)(chunk + n); //导引free-list指向新配置的空间
+    result = reinterpret_cast<obj *>(chunk); //返回给客端
+    *my_free_list = next_obj = reinterpret_cast<obj *>(chunk + n); //导引free-list指向新配置的空间
     for (int i = 1; ; ++i) {
         current_obj = next_obj;
-        next_obj = (obj *)(char *)(next_obj + n);
+        next_obj = reinterpret_cast<obj *>(reinterpret_cast<char *>(next_obj + n));
         if (i = nobjs - 1) {
             current_obj->free_list_link = 0;
             break;
@@ -105,12 +105,12 @@ char *alloc::chunk_alloc(size_t size, int& nobjs) { //内存池
         //以下试着让内存池中的参与碎片还有利用价值
         if (bytes_left > 0) {
             obj **my_free_list = free_list + FREELIST_INDEX(bytes_left);
-            ((obj *)(start_free))->free_list_link = *my_free_list;
-            *my_free_list = (obj *)(start_free);
+            (reinterpret_cast<obj *>(start_free))->free_list_link = *my_free_list;
+            *my_free_list = reinterpret_cast<obj *>(start_free);
         }
 
         //配置heap空间，用来补充内存池
-        start_free = (char *)(malloc(bytes_to_get));
+        start_free = static_cast<char *>(malloc(bytes_to_get));
         if (!start_free) {
             //heap空间不足，malloc失败
             obj **my_free_list, *p;
@@ -120,7 +120,7 @@ char *alloc::chunk_alloc(size_t size, int& nobjs) { //内存池
                 if (p != 0) {
                     //调整free-list以释放未使用区块
                     *my_free_list = p->free_list_link;
-                    start_free = (char *)p;
+                    start_free = reinterpret_cast<char *>(p);
                     end_free = start_free + i;
                     //递归调用自己，调整nobjs
                     return (chunk_alloc(size, nobjs));
