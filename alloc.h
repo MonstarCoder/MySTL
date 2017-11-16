@@ -40,7 +40,7 @@ private:
 
 public:
     static void *allocate(size_t bytes);
-    static void deallocate(void *p, size_t old_sz);
+    static void deallocate(void *p, size_t n);
     static void *reallocate(void *p, size_t old_sz, size_t new_sz);
 };
 
