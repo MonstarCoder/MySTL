@@ -205,12 +205,47 @@ vector<T, Alloc>& vector<T, Alloc>::operator=(vector vec) {
 }
 
 //**********比较相关操作**********
+template<typename T, typename Alloc>
+bool vector<T, Alloc>::operator==(const vector& vec) const {
+    if (size() != vec.size()) {
+        return false;
+    }
+    else {
+        auto ptr1 = start_;
+        auto ptr2 = vec.start_;
+        for (; ptr1 != finish_ && ptr2 != vec.finish_; ++ptr1, ++ptr2) {
+            if (*ptr1 != *ptr2)
+                return false;
+        }
+        return true;
+    }
+}
 
-
-
-
+template<typename T, typename Alloc>
+bool vector<T, Alloc>::operator!=(const vector& vec) const {
+    return !(*this == vec);
+}
 
 //**********迭代器和容量相关**********
+template<typename T, typename Alloc>
+void vector<T, Alloc>::resize(size_type n) {
+
+}
+
+
+
+template<typename T, typename Alloc>
+void vector<T, Alloc>::reserve(size_type n) {
+
+}
+
+template<typename T, typename Alloc>
+void vector<T, Alloc>::shrink_to_fit() {
+
+}
+
+
+
 
 //**********访问元素相关**********
 
