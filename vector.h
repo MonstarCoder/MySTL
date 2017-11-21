@@ -5,12 +5,13 @@
 #include "typetraits.h"
 #include "iterator.h"
 
-#include <algorithm> //for fill_n
+#include <algorithm> //for fill_n, max
 #include <memory> //for uninitialized_copy unititialized_fill
 #include <cstddef> //for ptrdiff_t
 #include <initializer_list> //for initializer_list
 #include <iostream> //for ostream
 #include <utility> //for forward, swap
+#include <stdexcept> //for out_of_range
 
 namespace mystl {
 
@@ -35,6 +36,7 @@ protected:
     iterator end_of_storage_; // 表示目前可用空间的尾（后）
 
     void insert_aux(iterator position, const value_type& x);
+    void insert_aux(iterator position, const size_type& n, const value_type& x);
 
     void deallocate();
 
@@ -98,14 +100,14 @@ public:
     void pop_back();
     template<typename... Args>
     iterator emplace(iterator position, Args&&... args);
-    iterator insert(iterator position, const value_type& val);
+    iterator insert(iterator position, const value_type& value);
     iterator insert(iterator position, const size_type& n, const value_type& value);
     iterator insert(iterator position, iterator first, iterator last);
-    iterator insert(iterator position, std::initializer_list<value_type> values);
+    iterator insert(iterator position, std::initializer_list<value_type> lst);
     iterator erase(iterator position);
     iterator erase(iterator first, iterator last);
     void assign(iterator first, iterator last);
-    void assign(std::initializer_list<value_type> value);
+    void assign(std::initializer_list<value_type> lst);
     void assign(size_type n, value_type& value);
 
 public:
@@ -319,6 +321,43 @@ void vector<T, Alloc>::insert_aux(iterator position, const value_type& value) {
     }
 }
 
+//重载insert_aux
+template<typename T, typename Alloc>
+void vector<T, Alloc>::insert_aux(iterator position, const size_type& n, const value_type& value) {
+    if ((finish_  + n) <= end_of_storage_) { //还有剩余内存
+        construct(finish_, *(finish_ -n));
+        finish_ += n;
+        value_type val_copy = value;
+        std::copy_backward(position, finish_ - 2, finish_ -1);
+        for (auto i = position; i < n; ++i) {
+            *position = val_copy;
+            ++position;
+        }
+    } else { //内存不足，重新分配（原来的加上max(old_size, n)）
+        const size_type old_size = size();
+        const size_type len = old_size != 0 ? std::max(n, old_size) : 1;
+        iterator new_start = data_allocator::allocate(len);
+        iterator new_finish = new_start;
+        try {
+            new_finish = std::uninitialized_copy(start_, position, new_start);
+            for (auto i = new_finish; i < n; ++i) {
+                construct(new_finish, value);
+                ++new_finish;
+            }
+            new_finish = std::uninitialized_copy(position, finish_, new_finish);
+        } catch(...) {
+            destroy(new_start, new_finish);
+            data_allocator::deallocate(new_start, len);
+            throw;
+        }
+        destroy(begin(), end());
+        deallocate();
+        start_ = new_start;
+        finish_ = new_finish;
+        end_of_storage_ = new_start + len;
+    }
+}
+
 template<typename T, typename Alloc>
 void vector<T, Alloc>::pop_back() {
     --finish_;
@@ -335,18 +374,84 @@ template<typename T, typename Alloc>
 template<typename... Args>
 typename vector<T, Alloc>::iterator
 vector<T, Alloc>::emplace(iterator position, Args&&... args) {
-
+    if (position < cbegin() || position > cend()) {
+        throw std::out_of_range("vector::emplace() - parameter \"position\" is out of bound");
+    }
+    auto n = position - cbegin();
+    insert(position, value_type(std::forward<Args>(args)...));
+    return cbegin() + n;
 }
-/*
-    iterator insert(iterator position, const value_type& val);
-    iterator insert(iterator position, const size_type& n, const value_type& value);
-    iterator insert(iterator position, iterator first, iterator last);
-    iterator insert(iterator position, std::initializer_list<value_type> values);
-    iterator erase(iterator position);
-    iterator erase(iterator first, iterator last);
-    void assign(iterator first, iterator last);
-    void assign(std::initializer_list<value_type> value);
-    */
+
+template<typename T, typename Alloc>
+typename vector<T, Alloc>::iterator
+vector<T, Alloc>::insert(iterator position, const value_type& value) {
+    auto n = position -cbegin();
+    insert_aux(position, value);
+    return cbegin() + n;
+}
+
+template<typename T, typename Alloc>
+typename vector<T, Alloc>::iterator
+vector<T, Alloc>::insert(iterator position, const size_type& n, const value_type& value) {
+    if (n == 0) return;
+    auto tmp = position - cbegin();
+    insert_aux(position, n, value);
+    return cbegin() + tmp;
+}
+
+template<typename T, typename Alloc>
+typename vector<T, Alloc>::iterator
+vector<T, Alloc>::insert(iterator position, iterator first, iterator last) {
+    if (first == last) return;
+    auto n = position - cbegin();
+    for (auto iter = first; iter != last; ++iter) {
+        insert(position, *iter);
+    }
+    return cbegin() + n;
+}
+
+template<typename T, typename Alloc>
+typename vector<T, Alloc>::iterator
+vector<T, Alloc>::insert(iterator position, std::initializer_list<value_type> lst) {
+    return insert(position, lst.begin(), lst.end());
+}
+
+template<typename T, typename Alloc>
+typename vector<T, Alloc>::iterator
+vector<T, Alloc>::erase(iterator position) {
+    if (position + 1 != cend()) {
+        std::copy(position + 1, finish_, position);
+    }
+    --finish_;
+    destroy(finish_);
+    return position;
+}
+
+template<typename T, typename Alloc>
+typename vector<T, Alloc>::iterator
+vector<T, Alloc>::erase(iterator first, iterator last) {
+    auto i = copy(last, finish_, first);
+    destroy(i, finish_);
+    finish_ = finish_ - (last - first);
+    return first;
+}
+
+template<typename T, typename Alloc>
+void vector<T, Alloc>::assign(iterator first, iterator last) {
+    clear();
+    insert(start_, first, last);
+}
+
+template<typename T, typename Alloc>
+void vector<T, Alloc>::assign(std::initializer_list<value_type> lst) {
+    assign(lst.begin(), lst.end());
+}
+
+template<typename T, typename Alloc>
+void vector<T, Alloc>::assign(size_type n, value_type& value) {
+    clear();
+    insert(start_, n, value);
+}
 
 } //namespace mystl
 
