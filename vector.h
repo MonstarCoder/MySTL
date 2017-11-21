@@ -10,7 +10,7 @@
 #include <cstddef> //for ptrdiff_t
 #include <initializer_list> //for initializer_list
 #include <iostream> //for ostream
-#include <utility> //for swap
+#include <utility> //for forward, swap
 
 namespace mystl {
 
@@ -93,9 +93,11 @@ public:
     void clear();
     void swap(vector& vec);
     void push_back(const value_type& value);
-    void emplace_back(const value_type& value);
+    template<typename... Args>
+    void emplace_back(Args&&... args);
     void pop_back();
-    iterator emplace(iterator position, const value_type& value);
+    template<typename... Args>
+    iterator emplace(iterator position, Args&&... args);
     iterator insert(iterator position, const value_type& val);
     iterator insert(iterator position, const size_type& n, const value_type& value);
     iterator insert(iterator position, iterator first, iterator last);
@@ -229,25 +231,38 @@ bool vector<T, Alloc>::operator!=(const vector& vec) const {
 //**********迭代器和容量相关**********
 template<typename T, typename Alloc>
 void vector<T, Alloc>::resize(size_type n) {
-
+    if (n < size()) {
+        erase(begin() + n, end());
+    } else {
+        insert(end(), n - size(), T());
+    }
 }
-
-
 
 template<typename T, typename Alloc>
 void vector<T, Alloc>::reserve(size_type n) {
-
+    if (capacity() < n) {
+        const size_type old_size = size();
+        iterator tmp = allocate_and_copy(n, start_, finish_);
+        destroy(start_, finish_);
+        deallocate();
+        start_ = tmp;
+        finish_ = tmp + old_size;
+        end_of_storage_ = start_ + n;
+    }
 }
 
 template<typename T, typename Alloc>
 void vector<T, Alloc>::shrink_to_fit() {
-
+    auto vec = *this;
+    swap(vec);
 }
 
-
-
-
 //**********访问元素相关**********
+template<typename T, typename Alloc>
+typename vector<T, Alloc>::reference
+vector<T, Alloc>::at(size_type n) const {
+    return *(begin() + n);
+}
 
 //**********操作容器相关**********
 template<typename T, typename Alloc>
@@ -257,6 +272,81 @@ void vector<T, Alloc>::swap(vector& vec) {
     swap(finish_, vec.finish_);
     swap(end_of_storage_, vec.end_of_storage_);
 }
+
+template<typename T, typename Alloc>
+void vector<T, Alloc>::clear() {
+    erase(begin(), end());
+}
+
+template<typename T, typename Alloc>
+void vector<T, Alloc>::push_back(const value_type& value) {
+    if (finish_ != end_of_storage_) {
+        construct(finish_, value);
+        ++finish_;
+    } else {
+        insert_aux(end(), value);
+    }
+}
+
+template<typename T, typename Alloc>
+void vector<T, Alloc>::insert_aux(iterator position, const value_type& value) {
+    if (finish_ != end_of_storage_) { //还有剩余内存
+        construct(finish_, *(finish_ -1));
+        ++finish_;
+        value_type val_copy = value;
+        std::copy_backward(position, finish_ - 2, finish_ -1);
+        *position = val_copy;
+    } else { //内存不足，重新分配（原来的2倍）
+        const size_type old_size = size();
+        const size_type len = old_size != 0 ? 2 * old_size : 1;
+        iterator new_start = data_allocator::allocate(len);
+        iterator new_finish = new_start;
+        try {
+            new_finish = std::uninitialized_copy(start_, position, new_start);
+            construct(new_finish, value);
+            ++new_finish;
+            new_finish = std::uninitialized_copy(position, finish_, new_finish);
+        } catch(...) {
+            destroy(new_start, new_finish);
+            data_allocator::deallocate(new_start, len);
+            throw;
+        }
+        destroy(begin(), end());
+        deallocate();
+        start_ = new_start;
+        finish_ = new_finish;
+        end_of_storage_ = new_start + len;
+    }
+}
+
+template<typename T, typename Alloc>
+void vector<T, Alloc>::pop_back() {
+    --finish_;
+    destroy(finish_);
+}
+
+template<typename T, typename Alloc>
+template<typename... Args>
+void vector<T, Alloc>::emplace_back(Args&&... args) { //先构造value_type,然后调用push_back
+    push_back(value_type(std::forward<Args>(args)...)); //c++11 forward转发
+}
+
+template<typename T, typename Alloc>
+template<typename... Args>
+typename vector<T, Alloc>::iterator
+vector<T, Alloc>::emplace(iterator position, Args&&... args) {
+
+}
+/*
+    iterator insert(iterator position, const value_type& val);
+    iterator insert(iterator position, const size_type& n, const value_type& value);
+    iterator insert(iterator position, iterator first, iterator last);
+    iterator insert(iterator position, std::initializer_list<value_type> values);
+    iterator erase(iterator position);
+    iterator erase(iterator first, iterator last);
+    void assign(iterator first, iterator last);
+    void assign(std::initializer_list<value_type> value);
+    */
 
 } //namespace mystl
 
