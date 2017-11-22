@@ -1,6 +1,6 @@
 #include <iostream>
 
-#include "Test/VectorTest.h"
+#include "test/vectortest.h"
 
 using namespace mystl;
 
