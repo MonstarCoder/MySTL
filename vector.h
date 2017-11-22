@@ -157,7 +157,7 @@ template<typename T, typename Alloc>
 vector<T, Alloc>::vector(iterator first, iterator last) {
     if (first == last) return;
     auto n = std::distance(first, last);
-    start_ = allocate_and_copy(n, first, last);
+    start_ = allocate_and_copy(first, last);
     finish_ = start_ + n;
     end_of_storage_ = finish_;
 }
