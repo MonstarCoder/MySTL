@@ -48,8 +48,8 @@ void allocator<T>::deallocate(T *p) {
 
 template<typename T>
 void allocator<T>::deallocate(T *p, size_t n) {
-    if (n == 0) return 0;
-    alloc::deallocate(static_cast<void *>(p), sizeof(T) * n);
+    if (n != 0)
+        alloc::deallocate(static_cast<void *>(p), sizeof(T) * n);
 }
 
 template<typename T>
