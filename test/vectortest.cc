@@ -17,7 +17,7 @@ void testCase1(){
     tsVec<std::string> v6(std::begin(arr), std::end(arr));
     assert(mystl::test::container_equal(v5, v6));
 }
-
+/*
 void testCase2(){
     stdVec<int> temp1(10, 0);
     tsVec<int> temp2(10, 0);
@@ -246,5 +246,6 @@ void testAllCases() {
     testCase15();
 }
 
+*/
 } //namespace mystl
 } //namespace vectortest
