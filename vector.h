@@ -5,6 +5,7 @@
 #include "typetraits.h"
 #include "iterator.h"
 
+#include <iterator> //for std::iterator
 #include <algorithm> //for fill_n, max
 #include <memory> //for uninitialized_copy unititialized_fill
 #include <cstddef> //for ptrdiff_t
@@ -148,7 +149,7 @@ vector<T, Alloc>::allocate_and_fill(const size_type n, const value_type& value) 
 template<typename T, typename Alloc>
 typename vector<T, Alloc>::iterator
 vector<T, Alloc>::allocate_and_copy(iterator first, iterator last) {
-    iterator result = data_allocator::allocate(first - last);
+    iterator result = data_allocator::allocate(last - first);
     std::uninitialized_copy(first, last, result);
     return result;
 }
@@ -156,7 +157,7 @@ vector<T, Alloc>::allocate_and_copy(iterator first, iterator last) {
 template<typename T, typename Alloc>
 vector<T, Alloc>::vector(iterator first, iterator last) {
     if (first == last) return;
-    auto n = std::distance(first, last);
+    auto n = last - first;
     start_ = allocate_and_copy(first, last);
     finish_ = start_ + n;
     end_of_storage_ = finish_;
