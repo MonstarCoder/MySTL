@@ -8,7 +8,5 @@ int main() {
 
 	mystl::vectortest::testAllCases();
 
-	system("pause");
-
 	return 0;
 }
