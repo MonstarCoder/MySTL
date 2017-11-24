@@ -52,7 +52,7 @@ public:
     vector(size_type n, const T& value) { fill_initialize(n, value); }
     vector(int n, const value_type& value) { fill_initialize(n, value); }
     vector(long n, const value_type& value) { fill_initialize(n, value); }
-    explicit vector(size_type n) { fill_initialize(n, T()); }
+    explicit vector(size_type n) { fill_initialize(n, T()); } //防止出现vector<T> vec = n
     vector(iterator first, iterator last);
     vector(std::initializer_list<value_type> values) //列表初始化
         :vector(values.begin(), values.end()) {}
