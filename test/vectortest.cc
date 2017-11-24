@@ -5,17 +5,26 @@ namespace vectortest{
 
 void testCase1(){
     stdVec<std::string> v1(10, "marvin");
-    tsVec<std::string> v2(10, "marvin");
-    assert(mystl::test::container_equal(v1, v2));
+    myVec<std::string> v2(10, "marvin");
+    if ((mystl::test::container_equal(v1, v2)) == true) {
+        std::cout << "stdVec == myVec!" << std::endl;
+    }
+    //assert(mystl::test::container_equal(v1, v2));
 
     stdVec<std::string> v3(10);
-    tsVec<std::string> v4(10);
-    assert(mystl::test::container_equal(v3, v4));
+    myVec<std::string> v4(10);
+    if ((mystl::test::container_equal(v3, v4)) == true) {
+        std::cout << "stdVec == myVec!" << std::endl;
+    }
+    //assert(mystl::test::container_equal(v3, v4));
 
     std::array<std::string, 3> arr = { "abc", "def", "ghi" };
     stdVec<std::string> v5(std::begin(arr), std::end(arr));
-    tsVec<std::string> v6(std::begin(arr), std::end(arr));
-    assert(mystl::test::container_equal(v5, v6));
+    myVec<std::string> v6(std::begin(arr), std::end(arr));
+    if ((mystl::test::container_equal(v5, v6)) == true) {
+        std::cout << "stdVec == myVec!" << std::endl;
+    }
+    //assert(mystl::test::container_equal(v5, v6));
 }
 /*
 void testCase2(){

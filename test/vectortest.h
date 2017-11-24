@@ -18,7 +18,7 @@ namespace vectortest{
     using stdVec = std::vector<T>;
 
     template<class T>
-    using tsVec = mystl::vector<T>;
+    using myVec = mystl::vector<T>;
 
     void testCase1();
     //void testCase2();
