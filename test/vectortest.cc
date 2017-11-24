@@ -227,25 +227,25 @@ void testCase15()
     assert(testItem::getCount() == 0);
 
 }
-
+*/
 void testAllCases() {
     testCase1();
-    testCase2();
-    testCase3();
-    testCase4();
-    testCase5();
-    testCase6();
-    testCase7();
-    testCase8();
-    testCase9();
-    testCase10();
-    testCase11();
-    testCase12();
-    testCase13();
-    testCase14();
-    testCase15();
+    //testCase2();
+    //testCase3();
+    //testCase4();
+    //testCase5();
+    //testCase6();
+    //testCase7();
+    //testCase8();
+    //testCase9();
+    //testCase10();
+    //testCase11();
+    //testCase12();
+    //testCase13();
+    //testCase14();
+    //testCase15();
 }
 
-*/
+
 } //namespace mystl
 } //namespace vectortest
