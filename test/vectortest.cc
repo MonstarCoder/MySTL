@@ -26,10 +26,11 @@ void testCase1(){
     }
     //assert(mystl::test::container_equal(v5, v6));
 }
+
 /*
 void testCase2(){
     stdVec<int> temp1(10, 0);
-    tsVec<int> temp2(10, 0);
+    myVec<int> temp2(10, 0);
 
     auto v1(temp1);
     auto v2(temp2);
@@ -48,8 +49,9 @@ void testCase2(){
     assert(mystl::test::container_equal(v7, v8));
 }
 
+*/
 void testCase3(){
-    tsVec<int> v1, v2;
+    myVec<int> v1, v2;
     for (int i = 0; i != 100; ++i){
         v1.push_back(i);
         v2.push_back(i);
@@ -60,26 +62,27 @@ void testCase3(){
 }
 
 void testCase4(){
-    tsVec<int> myvector;
+    myVec<int> myvector;
     for (int i = 1; i <= 5; i++) myvector.push_back(i);
 
     auto i = 1;
-    for (tsVec<int>::iterator it = myvector.begin(); it != myvector.end(); ++it, ++i){
+    for (myVec<int>::iterator it = myvector.begin(); it != myvector.end(); ++it, ++i){
         assert(*it == i);
     }
 }
 
+/*
 void testCase5(){
-    tsVec<int> myvector(5);  // 5 default-constructed ints
+    myVec<int> myvector(5);  // 5 default-constructed ints
 
     auto i = 5;
-    for (tsVec<int>::iterator it = myvector.begin(); it != myvector.end(); ++it, --i){
+    for (myVec<int>::iterator it = myvector.begin(); it != myvector.end(); ++it, --i){
         assert(*it == i);
     }
 }
 
 void testCase6(){
-    tsVec<int> v(11, 0);
+    myVec<int> v(11, 0);
     assert(v.size() == 11);
 
     v.resize(5);
@@ -90,14 +93,14 @@ void testCase6(){
 }
 
 void testCase7(){
-    tsVec<int> v;
+    myVec<int> v;
     v.reserve(20);
     assert(v.capacity() == 20);
 }
 
 void testCase8(){
     stdVec<int> v1(10);
-    tsVec<int> v2(10);
+    myVec<int> v2(10);
     for (unsigned i = 0; i < 10; i++){
         v1[i] = i;
         v2[i] = i;
@@ -114,7 +117,7 @@ void testCase8(){
 
 void testCase9(){
     stdVec<int> v1(5);
-    tsVec<int> v2(5);
+    myVec<int> v2(5);
 
     auto p1 = v1.data();
     auto p2 = v2.data();
@@ -125,8 +128,8 @@ void testCase9(){
 }
 
 void testCase10(){
-    tsVec<int> foo(3, 100);   // three ints with a value of 100
-    tsVec<int> bar(2, 200);   // five ints with a value of 200
+    myVec<int> foo(3, 100);   // three ints with a value of 100
+    myVec<int> bar(2, 200);   // five ints with a value of 200
 
     assert(mystl::test::container_equal(foo, stdVec<int>{100, 100, 100}));
     assert(mystl::test::container_equal(bar, stdVec<int>{200, 200}));
@@ -138,7 +141,7 @@ void testCase10(){
 
 void testCase11(){
     stdVec<std::string> v1;
-    tsVec<std::string> v2;
+    myVec<std::string> v2;
 
     v1.push_back("hello "); v1.push_back("world");
     v2.push_back("hello "); v2.push_back("world");
@@ -151,7 +154,7 @@ void testCase11(){
 
 void testCase12(){
     stdVec<int> v1;
-    tsVec<int> v2;
+    myVec<int> v2;
 
     v1.insert(v1.begin(), 0);
     v2.insert(v2.begin(), 0);
@@ -173,7 +176,7 @@ void testCase12(){
 
 void testCase13(){
     stdVec<int> v1;
-    tsVec<int> v2;
+    myVec<int> v2;
     for (int i = 1; i <= 10; i++) {
         v1.push_back(i);
         v2.push_back(i);
@@ -188,8 +191,8 @@ void testCase13(){
 }
 
 void testCase14(){
-    tsVec<int> foo(3, 100);
-    tsVec<int> bar(2, 200);
+    myVec<int> foo(3, 100);
+    myVec<int> bar(2, 200);
 
     assert(!(foo == bar));
     assert(foo != bar);
@@ -236,11 +239,12 @@ void testCase15()
     assert(testItem::getCount() == 0);
 
 }
+
 */
 void testAllCases() {
     testCase1();
     //testCase2();
-    //testCase3();
+    testCase3();
     //testCase4();
     //testCase5();
     //testCase6();
