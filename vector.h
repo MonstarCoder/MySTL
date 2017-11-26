@@ -76,9 +76,9 @@ public:
     const_iterator cbegin() const { return start_; }
     iterator end() { return finish_; }
     const_iterator cend() const { return finish_; }
-    size_type size() const { return static_cast<size_type>(end() - begin()); }
+    size_type size() const { return static_cast<size_type>(cend() - cbegin()); }
     size_type capacity() const {
-        return static_cast<size_type>(end_of_storage_ - begin());
+        return static_cast<size_type>(end_of_storage_ - cbegin());
     }
     bool empty() const { return begin() == end(); }
     void resize(size_type n);
