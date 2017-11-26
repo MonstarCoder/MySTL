@@ -5,9 +5,9 @@ vectortest : $(vector)
 
 main.o : main.cc
 	g++ -std=c++11 -g -c main.cc
-alloc.o : ./impl/alloc.cc
+alloc.o : ./impl/alloc.cc alloc.h
 	g++ -std=c++11 -g -c ./impl/alloc.cc
-vectortest.o : ./test/vectortest.cc
+vectortest.o : ./test/vectortest.cc ./test/vectortest.h
 	g++ -std=c++11 -g -c ./test/vectortest.cc
 	
 .PHONY : clean
