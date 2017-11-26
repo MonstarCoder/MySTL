@@ -44,6 +44,7 @@ protected:
     iterator allocate_and_fill(const size_type n, const value_type& value);
 
     iterator allocate_and_copy(iterator first, iterator last);
+    iterator allocate_and_copy(const_iterator first, const_iterator last);
 
     void fill_initialize(size_type n, const value_type& value);
 
@@ -63,7 +64,7 @@ public:
     //vector& operator=(const vector& vec); //拷贝
     //vector& operator=(vector&& vec) noexcept; //移动
     ~vector() {
-        destroy(start_, finish_); //全局函数
+        data_allocator::destroy(start_, finish_); //
         deallocate(); //成员函数
     }
 
@@ -73,10 +74,12 @@ public:
 
     //迭代器和容量相关
     iterator begin() { return start_; }
+    const_iterator begin() const { return start_; }
     const_iterator cbegin() const { return start_; }
     iterator end() { return finish_; }
+    const_iterator end() const { return finish_; }
     const_iterator cend() const { return finish_; }
-    size_type size() const { return static_cast<size_type>(cend() - cbegin()); }
+    size_type size() const { return static_cast<size_type>(end() - begin()); }
     size_type capacity() const {
         return static_cast<size_type>(end_of_storage_ - cbegin());
     }
@@ -149,6 +152,14 @@ vector<T, Alloc>::allocate_and_fill(const size_type n, const value_type& value) 
 template<typename T, typename Alloc>
 typename vector<T, Alloc>::iterator
 vector<T, Alloc>::allocate_and_copy(iterator first, iterator last) {
+    iterator result = data_allocator::allocate(last - first);
+    std::uninitialized_copy(first, last, result);
+    return result;
+}
+ //重载allocate_and_copy
+template<typename T, typename Alloc>
+typename vector<T, Alloc>::iterator
+vector<T, Alloc>::allocate_and_copy(const_iterator first, const_iterator last) {
     iterator result = data_allocator::allocate(last - first);
     std::uninitialized_copy(first, last, result);
     return result;
@@ -245,8 +256,8 @@ template<typename T, typename Alloc>
 void vector<T, Alloc>::reserve(size_type n) {
     if (capacity() < n) {
         const size_type old_size = size();
-        iterator tmp = allocate_and_copy(n, start_, finish_);
-        destroy(start_, finish_);
+        iterator tmp = allocate_and_copy(start_, finish_);
+        data_allocator::destroy(start_, finish_);
         deallocate();
         start_ = tmp;
         finish_ = tmp + old_size;
@@ -310,11 +321,11 @@ void vector<T, Alloc>::insert_aux(iterator position, const value_type& value) {
             ++new_finish;
             new_finish = std::uninitialized_copy(position, finish_, new_finish);
         } catch(...) {
-            destroy(new_start, new_finish);
+            data_allocator::destroy(new_start, new_finish);
             data_allocator::deallocate(new_start, len);
             throw;
         }
-        destroy(begin(), end());
+        data_allocator::destroy(begin(), end());
         deallocate();
         start_ = new_start;
         finish_ = new_finish;
@@ -330,7 +341,7 @@ void vector<T, Alloc>::insert_aux(iterator position, const size_type& n, const v
         finish_ += n;
         value_type val_copy = value;
         std::copy_backward(position, finish_ - 2, finish_ -1);
-        for (auto i = position; i < n; ++i) {
+        for (auto i = 0; i != n; ++i) {
             *position = val_copy;
             ++position;
         }
@@ -341,17 +352,17 @@ void vector<T, Alloc>::insert_aux(iterator position, const size_type& n, const v
         iterator new_finish = new_start;
         try {
             new_finish = std::uninitialized_copy(start_, position, new_start);
-            for (auto i = new_finish; i < n; ++i) {
+            for (auto i = 0; i < n; ++i) {
                 construct(new_finish, value);
                 ++new_finish;
             }
             new_finish = std::uninitialized_copy(position, finish_, new_finish);
         } catch(...) {
-            destroy(new_start, new_finish);
+            data_allocator::destroy(new_start, new_finish);
             data_allocator::deallocate(new_start, len);
             throw;
         }
-        destroy(begin(), end());
+        data_allocator::destroy(begin(), end());
         deallocate();
         start_ = new_start;
         finish_ = new_finish;
@@ -362,7 +373,7 @@ void vector<T, Alloc>::insert_aux(iterator position, const size_type& n, const v
 template<typename T, typename Alloc>
 void vector<T, Alloc>::pop_back() {
     --finish_;
-    destroy(finish_);
+    data_allocator::destroy(finish_);
 }
 
 template<typename T, typename Alloc>
@@ -386,29 +397,29 @@ vector<T, Alloc>::emplace(iterator position, Args&&... args) {
 template<typename T, typename Alloc>
 typename vector<T, Alloc>::iterator
 vector<T, Alloc>::insert(iterator position, const value_type& value) {
-    auto n = position -cbegin();
+    auto n = position -begin();
     insert_aux(position, value);
-    return cbegin() + n;
+    return begin() + n;
 }
 
 template<typename T, typename Alloc>
 typename vector<T, Alloc>::iterator
 vector<T, Alloc>::insert(iterator position, const size_type& n, const value_type& value) {
-    if (n == 0) return;
-    auto tmp = position - cbegin();
+    if (n == 0) return 0;
+    auto tmp = position - begin();
     insert_aux(position, n, value);
-    return cbegin() + tmp;
+    return begin() + tmp;
 }
 
 template<typename T, typename Alloc>
 typename vector<T, Alloc>::iterator
 vector<T, Alloc>::insert(iterator position, iterator first, iterator last) {
-    if (first == last) return;
-    auto n = position - cbegin();
+    if (first == last) return 0;
+    auto n = position - begin();
     for (auto iter = first; iter != last; ++iter) {
         insert(position, *iter);
     }
-    return cbegin() + n;
+    return begin() + n;
 }
 
 template<typename T, typename Alloc>
@@ -424,15 +435,15 @@ vector<T, Alloc>::erase(iterator position) {
         std::copy(position + 1, finish_, position);
     }
     --finish_;
-    destroy(finish_);
+    data_allocator::destroy(finish_);
     return position;
 }
 
 template<typename T, typename Alloc>
 typename vector<T, Alloc>::iterator
 vector<T, Alloc>::erase(iterator first, iterator last) {
-    auto i = copy(last, finish_, first);
-    destroy(i, finish_);
+    auto i = std::copy(last, finish_, first);
+    data_allocator::destroy(i, finish_);
     finish_ = finish_ - (last - first);
     return first;
 }
