@@ -65,16 +65,16 @@ void allocator<T>::construct(T *p, const T& value) {
 
 template<typename T>
 void allocator<T>::destroy(T *p) {
-    destroy(p);
-    //p->~T();
+    //mystl::destroy(p);
+    p->~T();
 }
 
 template<typename T>
 void allocator<T>::destroy(T *first, T *last) {
-    destroy(first, last);
-    //for (; first != last; ++first) {
-        //first->T();
-    //}
+    //mystl::destroy(first, last);
+    for (; first != last; ++first) {
+        first->~T();
+    }
 }
 
 } //namespace mystl
