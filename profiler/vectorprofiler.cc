@@ -38,4 +38,8 @@ int main() {
     mystl::profiler::ProfilerInstance::finish();
     std::cout << "std::array(100000):" << std::endl;
     mystl::profiler::ProfilerInstance::print_time();
+
+//**********memory()**********
+    std::cout << "当前最大驻留集：" << mystl::profiler::ProfilerInstance::memory()
+        << " kb" << std::endl;
 }
