@@ -57,7 +57,7 @@ iterator_category(const Iterator&) {
     return category();
 }
 
-//返回distance type的函数
+//返回difference type的函数
 template <typename Iterator>
 inline typename iterator_traits<Iterator>::difference_type*
 distance_type(const Iterator&) {
