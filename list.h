@@ -86,11 +86,11 @@ struct _list_iterator {
 }; // struct _list_iterator
 
 //**********class list**********
-template<typename T, typename Alloc = allocator<T>>
+template<typename T, typename Alloc = allocator<_list_node<T>>>
 class list {
 protected:
     typedef _list_node<T>        list_node;
-    typedef Alloc                list_node_allocator; // 空间配置器
+    typedef allocator<_list_node<T>>        list_node_allocator; // 空间配置器
 public:
     typedef list_node*           link_type;
     typedef T                    value_type;
@@ -216,7 +216,7 @@ protected:
 
     // 析构节点元素，并释放内存
     void destroy_node(link_type p) {
-        list_node_allocator::destroy(&p->data);
+        destroy(&(p->data));
         put_node(p);
     }
 
@@ -237,7 +237,7 @@ protected:
     template<typename InputIterator>
     void range_initialize(InputIterator first, InputIterator last) {
         empty_initialize();
-        insert(begin(), end());
+        insert(begin(), first, last);
     }
 
     // 将[first, last)区间插入到psition之前
