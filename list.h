@@ -481,11 +481,83 @@ void list<T, Alloc>::sort() {
         carry.swap(counter[i]);
         if (i == fill) ++fill;
     }
-    for (int i = i; i < fill; ++i)
+    for (int i = 1; i < fill; ++i)
         counter[i].merge(counter[i - 1]);
     swap(counter[fill - 1]);
 }
 
+//给定一个仿函数，如果仿函数为真则进行相应的元素移除
+template<typename T, typename Alloc>
+template<typename Predicate>
+void list<T, Alloc>::remove_if(Predicate pred) {
+    iterator first = begin();
+    iterator last = end();
+    while (first != last) {
+        iterator next = first;
+        ++next;
+        if (pred(*first)) erase(first);
+        first = next;
+    }
+}
+
+//根据仿函数，决定如何移除相邻的重复节点
+template<typename T, typename Alloc>
+template<typename BinaryPredicate>
+void list<T, Alloc>::unique(BinaryPredicate binary_pred) {
+    iterator first = begin();
+    iterator last = end();
+    if (first == last) return;
+    iterator next = first;
+    while (++next != last) {
+        if (binary_pred(*first, *next))
+            erase(next);
+        else
+            first = next;
+        next = first;
+    }
+}
+
+//假设当前容器和x已经有序，将x合并到当前容器中，并保证在comp仿函数判定下仍然有效
+template<typename T, typename Alloc>
+template<typename StrictWeakOrdering>
+void list<T, Alloc>::merge(list<T, Alloc>& x, StrictWeakOrdering comp) {
+    iterator first1 = begin();
+    iterator last1 = end();
+    iterator first2 = x.begin();
+    iterator last2 = x.end();
+    while (first1 != last1 && first2 != last2) {
+        if (comp(*first2, *first2)) {
+            iterator next = first2;
+            transfer(first1, first2, ++next);
+            first2 = next;
+        }
+        else
+            ++first1;
+    }
+    if (first2 != last2) transfer(last1, first2, last2);
+}
+
+//根据仿函数comp进行排序
+template<typename T, typename Alloc>
+template<typename StrictWeakOrdering>
+void list<T, Alloc>::sort(StrictWeakOrdering comp) {
+    if (node->next == node || node->next->next == node) return;
+    list<T, Alloc> carry;
+    list<T, Alloc> counter[64];
+    int fill = 0;
+    while (!empty()) {
+        carry.splice(carry.begin(), *this, begin());
+        int i = 0;
+        while (i < fill && !counter[i].empty()) {
+            counter[i].merge(carry, comp);
+            carry.swap(counter[i++]);
+        }
+        carry.swap(counter[i]);
+        if (i == fill) ++fill;
+    }
+    for (int i = 1; i < fill; ++i) counter[i].merge(counter[i - 1], comp);
+    swap(counter[fill - 1]);
+}
 
 } // namespace mystl
 
