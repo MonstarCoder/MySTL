@@ -86,11 +86,11 @@ struct _list_iterator {
 }; // struct _list_iterator
 
 //**********class list**********
-template<typename T, typename Alloc = allocator<_list_node<T>>>
+template<typename T, typename Alloc = alloc>
 class list {
 protected:
     typedef _list_node<T>        list_node;
-    typedef allocator<_list_node<T>>        list_node_allocator; // 空间配置器
+    typedef allocator<list_node, Alloc>        list_node_allocator; // 空间配置器
 public:
     typedef list_node*           link_type;
     typedef T                    value_type;

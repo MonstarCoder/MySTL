@@ -16,7 +16,7 @@
 
 namespace mystl {
 
-template<typename T, typename Alloc = allocator<T>>
+template<typename T, typename Alloc = alloc>
 class vector {
 
 public:
@@ -30,7 +30,7 @@ public:
     typedef ptrdiff_t           difference_type;
 
 protected:
-    typedef Alloc data_allocator; //空间配置器
+    typedef allocator<T, Alloc> data_allocator; //空间配置器
 
     iterator start_; //表示目前使用空间的头
     iterator finish_; //表示目前使用空间的尾（后）
