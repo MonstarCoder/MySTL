@@ -8,7 +8,7 @@
 
 namespace mystl {
 
-template<typename T>
+template<typename T, typename Alloc>
 class allocator {
 public:
     typedef T            value_type;
@@ -30,47 +30,47 @@ public:
     static void destroy(T *first, T *last);
 };
 
-template<typename T>
-T *allocator<T>::allocate() {
-    return static_cast<T *>(alloc::allocate(sizeof(T)));
+template<typename T, typename Alloc>
+T *allocator<T, Alloc>::allocate() {
+    return static_cast<T *>(Alloc::allocate(sizeof(T)));
 }
 
-template<typename T>
-T *allocator<T>::allocate(size_t n) {
+template<typename T, typename Alloc>
+T *allocator<T, Alloc>::allocate(size_t n) {
     if (n == 0) return 0;
-    return static_cast<T *>(alloc::allocate(sizeof(T) * n));
+    return static_cast<T *>(Alloc::allocate(sizeof(T) * n));
 }
 
-template<typename T>
-void allocator<T>::deallocate(T *p) {
-    alloc::deallocate(static_cast<void *>(p), sizeof(T));
+template<typename T, typename Alloc>
+void allocator<T, Alloc>::deallocate(T *p) {
+    Alloc::deallocate(static_cast<void *>(p), sizeof(T));
 }
 
-template<typename T>
-void allocator<T>::deallocate(T *p, size_t n) {
+template<typename T, typename Alloc>
+void allocator<T, Alloc>::deallocate(T *p, size_t n) {
     if (n != 0)
-        alloc::deallocate(static_cast<void *>(p), sizeof(T) * n);
+        Alloc::deallocate(static_cast<void *>(p), sizeof(T) * n);
 }
 
-template<typename T>
-void allocator<T>::construct(T* p) {
+template<typename T, typename Alloc>
+void allocator<T, Alloc>::construct(T* p) {
     new(p) T();
 }
 
-template<typename T>
-void allocator<T>::construct(T *p, const T& value) {
+template<typename T, typename Alloc>
+void allocator<T, Alloc>::construct(T *p, const T& value) {
    // construct(p, value);
     new(p) T(value);
 }
 
-template<typename T>
-void allocator<T>::destroy(T *p) {
+template<typename T, typename Alloc>
+void allocator<T, Alloc>::destroy(T *p) {
     //mystl::destroy(p);
     p->~T();
 }
 
-template<typename T>
-void allocator<T>::destroy(T *first, T *last) {
+template<typename T, typename Alloc>
+void allocator<T, Alloc>::destroy(T *first, T *last) {
     //mystl::destroy(first, last);
     for (; first != last; ++first) {
         first->~T();
