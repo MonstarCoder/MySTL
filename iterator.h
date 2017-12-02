@@ -4,7 +4,7 @@
 #include <cstddef> //for ptrdiff_t
 namespace mystl {
 
-struct input_iterotor_tag {};
+struct input_iterator_tag {};
 struct output_iterator_tag {};
 struct forward_iterator_tag : public input_iterotor_tag {};
 struct bidirectional_iterator_tag : public forward_iterator_tag {};
