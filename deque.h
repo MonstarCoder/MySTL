@@ -170,7 +170,7 @@ protected:
     size_type map_size; // map容量
 
 public:
-    // 构造，析构和复制相关等
+    // 构造，析构和移动，复制相关等
     deque() : start(), finish(), map(0), map_size(0) {
         create_map_and_nodes(0);
     }
@@ -179,6 +179,9 @@ public:
         create_map_and_nodes(x.size());
         std::uninitialized_copy(x.begin(), x.end(), start);
     }
+
+    // 移动构造函数
+    deque(deque&& x) : start(x.start), finish(x.finish), map(x.map), map_size(x.map_size) {}
 
     deque(size_type n, const value_type& value)
         : start(), finish(), map(0), map_size(0) {
@@ -224,6 +227,12 @@ public:
         }
         return *this;
     }
+
+    /* 既是拷贝，也是移动赋值运算符？
+    deque& operator=(const deque x) {
+        *this.swap(x);
+    }
+    */
 
 public:
     // 访问容器元素和大小相关
