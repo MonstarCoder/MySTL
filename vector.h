@@ -23,9 +23,11 @@ public:
     //vector的嵌套类型定义
     typedef T                   value_type;
     typedef value_type*         pointer;
+    typedef const value_type*   const_pointer;
     typedef value_type*         iterator;
     typedef const value_type*   const_iterator;
     typedef value_type&         reference;
+    typedef const value_type&   const_reference;
     typedef size_t              size_type;
     typedef ptrdiff_t           difference_type;
 
@@ -91,9 +93,12 @@ public:
     //访问元素相关
     reference operator[](size_type n) { return *(begin() + n); }
     reference at(size_type n) const;
+    const_reference front() const { return *(begin()); }
+    const_reference back() const { return *(end() - 1); }
+    const_pointer data() const { return start_; }
     reference front() { return *(begin()); }
-    reference back() { return *(end() - 1); }
-    pointer data() { return start_; }
+    reference back()  { return *(end() - 1); }
+    pointer data()  { return start_; }
 
     //操作容器相关
     void clear();
