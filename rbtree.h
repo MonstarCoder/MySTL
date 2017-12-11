@@ -621,7 +621,7 @@ rb_tree<Key, Value, KeyOfValue, Compare, Alloc>::insert_unique(const Value& v) {
         return std::pair<iterator,bool>(_insert(x, y, v), true);
 
     return std::pair<iterator,bool>(j, false);
- }
+}
 
 template<typename Key, typename Val, typename KeyOfValue, typename Compare, typename Alloc>
 typename rb_tree<Key, Val, KeyOfValue, Compare, Alloc>::iterator
@@ -676,8 +676,8 @@ rb_tree<Key, Val, KeyOfValue, Compare, Alloc>::insert_equal(iterator position,
                 return _insert(position.node, position.node, v);
         else
             return insert_equal(v);
-   }
- }
+    }
+}
 
 template<typename K, typename V, typename KoV, typename Cmp, typename Al>
 template<typename II>
