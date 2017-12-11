@@ -897,18 +897,18 @@ bool rb_tree<Key, Value, KeyOfValue, Compare, Alloc>::_rb_verify() const {
         link_type L = left(x);
         link_type R = right(x);
 
-    if (x->color == _rb_tree_red)
-        if ((L && L->color == _rb_tree_red) ||
-            (R && R->color == _rb_tree_red))
-        return false;
+        if (x->color == _rb_tree_red)
+            if ((L && L->color == _rb_tree_red) ||
+                (R && R->color == _rb_tree_red))
+            return false;
 
-    if (L && key_compare(key(x), key(L)))
-        return false;
-    if (R && key_compare(key(R), key(x)))
-        return false;
+        if (L && key_compare(key(x), key(L)))
+            return false;
+        if (R && key_compare(key(R), key(x)))
+            return false;
 
-    if (!L && !R && _black_count(x, root()) != len)
-        return false;
+        if (!L && !R && _black_count(x, root()) != len)
+            return false;
     }
 
     if (leftmost() != _rb_tree_node_base::minimum(root()))
