@@ -1,4 +1,5 @@
-args = main.o alloc.o vectortest.o listtest.o dequetest.o queuetest.o
+args = main.o alloc.o vectortest.o listtest.o dequetest.o queuetest.o \
+	   settest.o
 
 a.out : $(args)
 	g++ -std=c++11 -g -o a.out $(args)
@@ -19,6 +20,9 @@ dequetest.o : ./test/dequetest.cc ./test/dequetest.h deque.h \
 queuetest.o : ./test/queuetest.cc ./test/queuetest.h queue.h heap.h \
 	allocator.h construct.h ./test/testutil.h
 	g++ -std=c++11 -g -c ./test/queuetest.cc
+settest.o : ./test/settest.cc ./test/settest.h set.h rbtree.h \
+	allocator.h construct.h ./test/testutil.h
+	g++ -std=c++11 -g -c ./test/settest.cc
 
 .PHONY : clean
 clean :
