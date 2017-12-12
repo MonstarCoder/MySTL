@@ -3,10 +3,13 @@
 
 #include "allocator.h"
 #include "iterator.h"
+#include "alloc.h"
+#include "construct.h"
 
 #include <utility> // for pair
 #include <cstddef>
 #include <algorithm>
+#include <functional>
 
 namespace mystl {
 
@@ -164,7 +167,7 @@ protected:
     link_type create_node(const value_type& x) {
         link_type tmp = get_node();
         try {
-            rb_tree_node_allocator::construct(&tmp->value, x);
+            construct(&tmp->value, x);
         } catch(...) {
             put_node(tmp);
             throw;
@@ -181,28 +184,28 @@ protected:
     }
 
     void destroy_node(link_type p) {
-        rb_tree_node_allocator::destroy(&p->value);
+        destroy(&p->value);
         put_node(p);
     }
 protected:
     // 以下三个函数用于取得header成员
-    link_type& root() const { return static_cast<link_type&>(header->parent); }
-    link_type& leftmost() const { return static_cast<link_type>(header->left); }
-    link_type& rightmost() const { return static_cast<link_type>(header->right); }
+    link_type& root() const { return (link_type&)(header->parent); }
+    link_type& leftmost() const { return (link_type&)(header->left); }
+    link_type& rightmost() const { return (link_type&)(header->right); }
     // 以下六个函数用于取得节点x的成员
-    static link_type& left(link_type x) { return static_cast<link_type>(x->left); }
-    static link_type& right(link_type x) { return static_cast<link_type>(x->right); }
-    static link_type& parent(link_type x) { return static_cast<link_type>(x->parent); }
+    static link_type& left(link_type x) { return (link_type&)(x->left); }
+    static link_type& right(link_type x) { return (link_type&)(x->right); }
+    static link_type& parent(link_type x) { return (link_type&)(x->parent); }
     static reference value(link_type x) { return x->value; }
-    static const Key& key(link_type x) { return static_cast<KeyOfValue()>(value(x)); }
-    static color_type& color(link_type x) { return static_cast<color_type&>(x->color); }
+    static const Key key(link_type x) { return (KeyOfValue)(value(x)); }
+    static color_type& color(link_type x) { return (color_type&)(x->color); }
     // 以下六个函数用于取得节点x的成员
-    static link_type& left(base_ptr x) { return static_cast<link_type>(x->left); }
-    static link_type& right(base_ptr x) { return static_cast<link_type>(x->right); }
-    static link_type& parent(base_ptr x) { return static_cast<link_type>(x->parent); }
-    static reference value(base_ptr x) { return static_cast<link_type>(x)->value; }
-    static const Key& key(base_ptr x) { return static_cast<KeyOfValue()>(value(x)); }
-    static color_type& color(base_ptr x) { return static_cast<color_type&>(x->color); }
+    static link_type& left(base_ptr x) { return (link_type&)(x->left); }
+    static link_type& right(base_ptr x) { return (link_type&)(x->right); }
+    static link_type& parent(base_ptr x) { return (link_type&)(x->parent); }
+    static reference value(base_ptr x) { return ((link_type)x)->value; }
+    static const Key key(base_ptr x) { return (KeyOfValue)(value(link_type(x))); }
+    static color_type& color(base_ptr x) { return (color_type&)(link_type(x)->color); }
 
     static link_type minimum(link_type x) {
         return static_cast<link_type>(_rb_tree_node_base::minimum(x));
@@ -564,7 +567,7 @@ _insert(base_ptr x_, base_ptr y_, const Value& v) {
     link_type y = (link_type) y_;
     link_type z;
 
-    if (y == header || x != 0 || key_compare(KeyOfValue()(v), key(y))) {
+    if (y == header || x != 0 || key_compare(KeyOfValue(v), key(y))) {
         z = create_node(v);
         left(y) = z;
         if (y == header) {
@@ -608,7 +611,7 @@ rb_tree<Key, Value, KeyOfValue, Compare, Alloc>::insert_unique(const Value& v) {
     bool comp = true;
     while (x != 0) {
         y = x;
-        comp = key_compare(KeyOfValue()(v), key(x));
+        comp = key_compare(static_cast<KeyOfValue>(v), key(x));
         x = comp ? left(x) : right(x);
     }
     iterator j = iterator(y);
@@ -617,7 +620,7 @@ rb_tree<Key, Value, KeyOfValue, Compare, Alloc>::insert_unique(const Value& v) {
             return std::pair<iterator,bool>(_insert(x, y, v), true);
         else
             --j;
-    if (key_compare(key(j.node), KeyOfValue()(v)))
+    if (key_compare(key(j.node), static_cast<KeyOfValue>(v)))
         return std::pair<iterator,bool>(_insert(x, y, v), true);
 
     return std::pair<iterator,bool>(j, false);
@@ -633,7 +636,7 @@ rb_tree<Key, Val, KeyOfValue, Compare, Alloc>::insert_unique(iterator position,
         else
             return insert_unique(v).first;
     else if (position.node == header) // end()
-            if (key_compare(key(rightmost()), KeyOfValue()(v)))
+            if (key_compare(key(rightmost()), static_cast<KeyOfValue>(v)))
                 return _insert(0, rightmost(), v);
             else
                 return insert_unique(v).first;
@@ -767,6 +770,7 @@ void rb_tree<Key, Value, KeyOfValue, Compare, Alloc>::erase(const Key* first,
     while (first != last) erase(*first++);
 }
 
+// 以下为set的各种操作
 template<typename Key, typename Value, typename KeyOfValue, typename Compare, typename Alloc>
 typename rb_tree<Key, Value, KeyOfValue, Compare, Alloc>::iterator
 rb_tree<Key, Value, KeyOfValue, Compare, Alloc>::find(const Key& k) {
