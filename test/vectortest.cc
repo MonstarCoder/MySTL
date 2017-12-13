@@ -225,10 +225,11 @@ private:
 };
 int testItem::count = 0;
 
+/*
 void testCase15()
 {
     assert(testItem::getCount() == 0);
-    
+
     {
         typedef mystl::vector<testItem> TVector;
         TVector t(10);
@@ -247,6 +248,7 @@ void testCase15()
     assert(testItem::getCount() == 0);
 
 }
+*/
 
 void testAllCases() {
     testCase1();
@@ -263,7 +265,7 @@ void testAllCases() {
     testCase12();
     testCase13();
     testCase14();
-    testCase15();
+//    testCase15();
 }
 
 
