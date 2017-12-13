@@ -3,8 +3,25 @@
 
 #include "rbtree.h"
 #include "iterator.h"
+#include "pair.h"
 
 namespace mystl {
+
+// 特定模板实例的声明
+template<typename Key, typename Compare, typename Alloc>
+class set;
+
+template<typename Key, typename Compare, typename Alloc>
+bool operator==(const set<Key, Compare, Alloc>&, const set<Key, Compare, Alloc>&);
+
+template<typename Key, typename Compare, typename Alloc>
+bool operator<(const set<Key, Compare, Alloc>&, const set<Key, Compare, Alloc>&);
+
+// 用于KeyOfValue()，提取key
+template<typename T>
+struct identity {
+    const T& operator() (const T& x) const { return x; }
+}; // struct identity
 
 template<typename Key, typename Compare = std::less<Key>, typename Alloc = alloc>
 class set {
@@ -16,7 +33,7 @@ public:
     typedef Compare value_compare;
 private:
     typedef rb_tree<key_type, value_type,
-                    value_type, key_compare, Alloc> rep_type;
+                    identity<value_type>, key_compare, Alloc> rep_type;
     rep_type t; // 以红黑树为实际容器
 public:
     typedef typename rep_type::const_pointer pointer;            // STL标准强制要求
@@ -57,11 +74,11 @@ public:
 
     void swap(set<Key, Compare, Alloc>& x) { t.swap(x.t); }
 
-    typedef std::pair<iterator, bool> pair_itretor_bool;
+    typedef pair<iterator, bool> pair_itretor_bool;
 
-    std::pair<iterator, bool> insert(const value_type& x) {
-        std::pair<typename rep_type::iterator, bool> p = t.insert_unique(x);
-        return std::pair<iterator, bool>(p.first, p.second);
+    pair<iterator, bool> insert(const value_type& x) {
+        pair<typename rep_type::iterator, bool> p = t.insert_unique(x);
+        return pair<iterator, bool>(p.first, p.second);
     }
 
     iterator insert(iterator position, const value_type& x) {
@@ -102,12 +119,12 @@ public:
         return t.upper_bound(x);
     }
 
-    std::pair<iterator, iterator> equal_range(const key_type& x) const {
+    pair<iterator, iterator> equal_range(const key_type& x) const {
         return t.equal_range(x);
     }
 
-    //friend bool operator== <>(const set&, const set&);
-    //friend bool operator< <>(const set&, const set&);
+    friend bool operator== <>/*<Key, Compare, Alloc>*/(const set&, const set&);
+    friend bool operator< <>/*<Key, Compare, Alloc>*/(const set&, const set&);
 }; // class set
 
 template <typename Key, typename Compare, typename Alloc>
