@@ -24,10 +24,10 @@ public:
     static void deallocate(T *p);
     static void deallocate(T *p, size_t n);
 
-    static void construct(T *p);
-    static void construct(T *p, const T& value);
-    static void destroy(T *p);
-    static void destroy(T *first, T *last);
+    //static void construct(T *p);
+    //static void construct(T *p, const T& value);
+    //static void destroy(T *p);
+    //static void destroy(T *first, T *last);
 };
 
 template<typename T, typename Alloc>
@@ -51,7 +51,7 @@ void allocator<T, Alloc>::deallocate(T *p, size_t n) {
     if (n != 0)
         Alloc::deallocate(static_cast<void *>(p), sizeof(T) * n);
 }
-
+/*
 template<typename T, typename Alloc>
 void allocator<T, Alloc>::construct(T* p) {
     new(p) T();
@@ -76,7 +76,7 @@ void allocator<T, Alloc>::destroy(T *first, T *last) {
         first->~T();
     }
 }
-
+*/
 } //namespace mystl
 
 #endif
