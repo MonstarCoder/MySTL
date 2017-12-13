@@ -276,7 +276,7 @@ public:
 
     void push_back(const value_type& t) {
         if (finish.cur != finish.last -1) {
-            data_allocator::construct(finish.cur, t);
+            construct(finish.cur, t);
             ++finish.cur;
         } else { // 容量已满要申请新内存
             push_back_aux(t);
@@ -285,7 +285,7 @@ public:
 
     void push_front(const value_type& t) {
         if (start.cur != start.first) {
-            data_allocator::construct(start.cur - 1, t);
+            construct(start.cur - 1, t);
             --start.cur;
         } else {
             push_front_aux(t);
@@ -295,7 +295,7 @@ public:
     void pop_back() {
         if (finish.cur != finish.first) {
             --finish.cur;
-            data_allocator::destroy(finish.cur);
+            destroy(finish.cur);
         } else {
             pop_back_aux();
         }
@@ -303,7 +303,7 @@ public:
 
     void pop_front() {
         if (start.cur != start.last -1) {
-            data_allocator::destroy(start.cur);
+            destroy(start.cur);
             ++start.cur;
         } else {
             pop_front_aux();
@@ -468,7 +468,7 @@ void deque<T, Alloc, BufSiz>::push_back_aux(const value_type& t) {
     reserve_map_at_back();
     *(finish.node + 1) = allocate_node();
     try {
-        data_allocator::construct(finish.cur, t_copy);
+        construct(finish.cur, t_copy);
         finish.set_node(finish.node + 1);
         finish.cur = finish.first;
     }
@@ -486,7 +486,7 @@ void deque<T, Alloc, BufSiz>::push_front_aux(const value_type& t) {
     try {
         start.set_node(start.node - 1);
         start.cur = start.last - 1;
-        data_allocator::construct(start.cur, t_copy);
+        construct(start.cur, t_copy);
     }
     catch(...) {
     start.set_node(start.node + 1);
@@ -501,12 +501,12 @@ void deque<T, Alloc, BufSiz>::pop_back_aux() {
     deallocate_node(finish.first);
     finish.set_node(finish.node -1);
     finish.cur = finish.last - 1;
-    data_allocator::destroy(finish.cur);
+    destroy(finish.cur);
 }
 
 template<typename T, typename Alloc, size_t BufSiz>
 void deque<T, Alloc, BufSiz>::pop_front_aux() {
-    data_allocator::destroy(start.cur);
+    destroy(start.cur);
     deallocate_node(start.first);
     start.set_node(start.node + 1);
     start.cur = start.first;
@@ -842,13 +842,13 @@ template<typename T, typename Alloc, size_t BufSiz>
 void deque<T, Alloc, BufSiz>::clear() {
     //　首先析构起点到终点的所有元素，并释放相应空间
     for (map_pointer node = start.node + 1; node < finish.node; ++node) {
-        data_allocator::destroy(*node, *node + buffer_size());
+        destroy(*node, *node + buffer_size());
         data_allocator::deallocate(*node, buffer_size());
     }
     // 如果deque本身不为空，析构所有对象，并释放掉结尾内存
     if (start.node != finish.node) {
-        data_allocator::destroy(start.cur, start.last);
-        data_allocator::destroy(finish.first, finish.cur);
+        destroy(start.cur, start.last);
+        destroy(finish.first, finish.cur);
         data_allocator::deallocate(finish.first, buffer_size());
     }
     // 析构所有元素，但不释放空间
