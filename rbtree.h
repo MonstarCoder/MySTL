@@ -5,8 +5,9 @@
 #include "iterator.h"
 #include "alloc.h"
 #include "construct.h"
+#include "pair.h"
 
-#include <utility> // for pair
+#include <utility>
 #include <cstddef>
 #include <algorithm>
 #include <functional>
@@ -197,14 +198,16 @@ protected:
     static link_type& right(link_type x) { return (link_type&)(x->right); }
     static link_type& parent(link_type x) { return (link_type&)(x->parent); }
     static reference value(link_type x) { return x->value; }
-    static const Key key(link_type x) { return (KeyOfValue)(value(x)); }
+    // rb_tree对外只有一个value,为了进行排序需要获得value的key
+    static const Key& key(link_type x) { return KeyOfValue() (value(x)); }
     static color_type& color(link_type x) { return (color_type&)(x->color); }
     // 以下六个函数用于取得节点x的成员
     static link_type& left(base_ptr x) { return (link_type&)(x->left); }
     static link_type& right(base_ptr x) { return (link_type&)(x->right); }
     static link_type& parent(base_ptr x) { return (link_type&)(x->parent); }
     static reference value(base_ptr x) { return ((link_type)x)->value; }
-    static const Key key(base_ptr x) { return (KeyOfValue)(value(link_type(x))); }
+    // rb_tree对外只有一个value,为了进行排序需要获得value的key
+    static const Key& key(base_ptr x) { return KeyOfValue() (value(link_type(x))); }
     static color_type& color(base_ptr x) { return (color_type&)(link_type(x)->color); }
 
     static link_type minimum(link_type x) {
@@ -274,7 +277,7 @@ public:
     }
 public:
     // 独一无二的插入
-    std::pair<iterator, bool> insert_unique(const value_type& x);
+    pair<iterator, bool> insert_unique(const value_type& x);
     // 可重复的插入
     iterator insert_equal(const value_type& x);
 
@@ -308,8 +311,8 @@ public:
     const_iterator lower_bound(const key_type& x) const;
     iterator upper_bound(const key_type& x);
     const_iterator upper_bound(const key_type& x) const;
-    std::pair<iterator, iterator> equal_range(const key_type& x);
-    std::pair<const_iterator, const_iterator> equal_range(const key_type& x) const;
+    pair<iterator, iterator> equal_range(const key_type& x);
+    pair<const_iterator, const_iterator> equal_range(const key_type& x) const;
 public:
     bool _rb_verify() const; // for debugging
 }; // class rb_tree
@@ -567,7 +570,7 @@ _insert(base_ptr x_, base_ptr y_, const Value& v) {
     link_type y = (link_type) y_;
     link_type z;
 
-    if (y == header || x != 0 || key_compare(KeyOfValue(v), key(y))) {
+    if (y == header || x != 0 || key_compare(KeyOfValue()(v), key(y))) {
         z = create_node(v);
         left(y) = z;
         if (y == header) {
@@ -604,26 +607,26 @@ rb_tree<Key, Value, KeyOfValue, Compare, Alloc>::insert_equal(const Value& v) {
 }
 
 template<typename Key, typename Value, typename KeyOfValue, typename Compare, typename Alloc>
-std::pair<typename rb_tree<Key, Value, KeyOfValue, Compare, Alloc>::iterator, bool>
+pair<typename rb_tree<Key, Value, KeyOfValue, Compare, Alloc>::iterator, bool>
 rb_tree<Key, Value, KeyOfValue, Compare, Alloc>::insert_unique(const Value& v) {
     link_type y = header;
     link_type x = root();
     bool comp = true;
     while (x != 0) {
         y = x;
-        comp = key_compare(static_cast<KeyOfValue>(v), key(x));
+        comp = key_compare(KeyOfValue()(v), key(x));
         x = comp ? left(x) : right(x);
     }
     iterator j = iterator(y);
     if (comp)
         if (j == begin())
-            return std::pair<iterator,bool>(_insert(x, y, v), true);
+            return pair<iterator,bool>(_insert(x, y, v), true);
         else
             --j;
-    if (key_compare(key(j.node), static_cast<KeyOfValue>(v)))
-        return std::pair<iterator,bool>(_insert(x, y, v), true);
+    if (key_compare(key(j.node), KeyOfValue()(v)))
+        return pair<iterator,bool>(_insert(x, y, v), true);
 
-    return std::pair<iterator,bool>(j, false);
+    return pair<iterator,bool>(j, false);
 }
 
 template<typename Key, typename Val, typename KeyOfValue, typename Compare, typename Alloc>
@@ -636,7 +639,7 @@ rb_tree<Key, Val, KeyOfValue, Compare, Alloc>::insert_unique(iterator position,
         else
             return insert_unique(v).first;
     else if (position.node == header) // end()
-            if (key_compare(key(rightmost()), static_cast<KeyOfValue>(v)))
+            if (key_compare(key(rightmost()), KeyOfValue()(v)))
                 return _insert(0, rightmost(), v);
             else
                 return insert_unique(v).first;
@@ -710,7 +713,7 @@ rb_tree<Key, Value, KeyOfValue, Compare, Alloc>::erase(iterator position) {
 template<typename Key, typename Value, typename KeyOfValue, typename Compare, typename Alloc>
 typename rb_tree<Key, Value, KeyOfValue, Compare, Alloc>::size_type
 rb_tree<Key, Value, KeyOfValue, Compare, Alloc>::erase(const Key& x) {
-    std::pair<iterator, iterator> p = equal_range(x);
+    pair<iterator, iterator> p = equal_range(x);
     size_type n = 0;
     distance(p.first, p.second, n);
     erase(p.first, p.second);
@@ -803,7 +806,7 @@ rb_tree<Key, Value, KeyOfValue, Compare, Alloc>::find(const Key& k) const {
 template<typename Key, typename Value, typename KeyOfValue, typename Compare, typename Alloc>
 typename rb_tree<Key, Value, KeyOfValue, Compare, Alloc>::size_type
 rb_tree<Key, Value, KeyOfValue, Compare, Alloc>::count(const Key& k) const {
-    std::pair<const_iterator, const_iterator> p = equal_range(k);
+    pair<const_iterator, const_iterator> p = equal_range(k);
     size_type n = 0;
     std::distance(p.first, p.second, n);
     return n;
@@ -862,17 +865,17 @@ rb_tree<Key, Value, KeyOfValue, Compare, Alloc>::upper_bound(const Key& k) const
 }
 
 template<typename Key, typename Value, typename KeyOfValue, typename Compare, typename Alloc>
-inline std::pair<typename rb_tree<Key, Value, KeyOfValue, Compare, Alloc>::iterator,
+inline pair<typename rb_tree<Key, Value, KeyOfValue, Compare, Alloc>::iterator,
                  typename rb_tree<Key, Value, KeyOfValue, Compare, Alloc>::iterator>
 rb_tree<Key, Value, KeyOfValue, Compare, Alloc>::equal_range(const Key& k) {
-    return std::pair<iterator, iterator>(lower_bound(k), upper_bound(k));
+    return pair<iterator, iterator>(lower_bound(k), upper_bound(k));
 }
 
 template<typename Key, typename Value, typename KoV, typename Compare, typename Alloc>
-inline std::pair<typename rb_tree<Key, Value, KoV, Compare, Alloc>::const_iterator,
+inline pair<typename rb_tree<Key, Value, KoV, Compare, Alloc>::const_iterator,
                  typename rb_tree<Key, Value, KoV, Compare, Alloc>::const_iterator>
 rb_tree<Key, Value, KoV, Compare, Alloc>::equal_range(const Key& k) const {
-    return std::pair<const_iterator,const_iterator>(lower_bound(k), upper_bound(k));
+    return pair<const_iterator,const_iterator>(lower_bound(k), upper_bound(k));
 }
 
 // 计算从node至root的黑节点数量
