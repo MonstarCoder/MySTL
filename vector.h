@@ -2,6 +2,7 @@
 #define MYSTL_VTCTOR_H
 
 #include "allocator.h"
+#include "construct.h"
 #include "typetraits.h"
 #include "iterator.h"
 
@@ -66,7 +67,7 @@ public:
     //vector& operator=(const vector& vec); //拷贝
     //vector& operator=(vector&& vec) noexcept; //移动
     ~vector() {
-        data_allocator::destroy(start_, finish_); //
+        destroy(start_, finish_); //
         deallocate(); //成员函数
     }
 
@@ -262,7 +263,7 @@ void vector<T, Alloc>::reserve(size_type n) {
     if (capacity() < n) {
         const size_type old_size = size();
         iterator tmp = allocate_and_copy(start_, finish_);
-        data_allocator::destroy(start_, finish_);
+        destroy(start_, finish_);
         deallocate();
         start_ = tmp;
         finish_ = tmp + old_size;
@@ -326,11 +327,11 @@ void vector<T, Alloc>::insert_aux(iterator position, const value_type& value) {
             ++new_finish;
             new_finish = std::uninitialized_copy(position, finish_, new_finish);
         } catch(...) {
-            data_allocator::destroy(new_start, new_finish);
+            destroy(new_start, new_finish);
             data_allocator::deallocate(new_start, len);
             throw;
         }
-        data_allocator::destroy(begin(), end());
+        destroy(begin(), end());
         deallocate();
         start_ = new_start;
         finish_ = new_finish;
@@ -363,11 +364,11 @@ void vector<T, Alloc>::insert_aux(iterator position, const size_type& n, const v
             }
             new_finish = std::uninitialized_copy(position, finish_, new_finish);
         } catch(...) {
-            data_allocator::destroy(new_start, new_finish);
+            destroy(new_start, new_finish);
             data_allocator::deallocate(new_start, len);
             throw;
         }
-        data_allocator::destroy(begin(), end());
+        destroy(begin(), end());
         deallocate();
         start_ = new_start;
         finish_ = new_finish;
@@ -378,7 +379,7 @@ void vector<T, Alloc>::insert_aux(iterator position, const size_type& n, const v
 template<typename T, typename Alloc>
 void vector<T, Alloc>::pop_back() {
     --finish_;
-    data_allocator::destroy(finish_);
+    destroy(finish_);
 }
 
 template<typename T, typename Alloc>
@@ -440,7 +441,7 @@ vector<T, Alloc>::erase(iterator position) {
         std::copy(position + 1, finish_, position);
     }
     --finish_;
-    data_allocator::destroy(finish_);
+    destroy(finish_);
     return position;
 }
 
@@ -448,7 +449,7 @@ template<typename T, typename Alloc>
 typename vector<T, Alloc>::iterator
 vector<T, Alloc>::erase(iterator first, iterator last) {
     auto i = std::copy(last, finish_, first);
-    data_allocator::destroy(i, finish_);
+    destroy(i, finish_);
     finish_ = finish_ - (last - first);
     return first;
 }
