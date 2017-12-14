@@ -195,11 +195,11 @@ vector<T, Alloc>::vector(vector&& vec) {
     //end_of_storage_ = start_ + vec.capacity();
     //vec.begin() = vec.end() = vec.capacity()= 0;
     //
-    //start_ = vec.start_;
-    //finish_ = vec.finish_;
-    //end_of_storage_ = vec.end_of_storage_;
-    //vec.start_ = vec.finish_ = vec.end_of_storage_ = 0;
-    swap(vec); //使用swap实现，简单安全
+    start_ = vec.start_;
+    finish_ = vec.finish_;
+    end_of_storage_ = vec.end_of_storage_;
+    vec.start_ = vec.finish_ = vec.end_of_storage_ = 0;
+    //swap(vec); //使用swap实现，简单安全
 }
 
 /*
