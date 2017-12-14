@@ -34,19 +34,19 @@ void testCase2(){
     auto v1(temp1);
     auto v2(temp2);
     assert(mystl::test::container_equal(v1, v2));
-/*
+
     auto v3(std::move(temp1));
     auto v4(std::move(temp2));
     assert(mystl::test::container_equal(v3, v4));  //move测试不通过
-*/
+
     auto v5 = v1;
     auto v6 = v2;
     assert(mystl::test::container_equal(v5, v6));
-/*
+
     auto v7 = std::move(v3);
     auto v8 = std::move(v4);
     assert(mystl::test::container_equal(v7, v8));
-*/
+
 }
 
 void testCase3(){
