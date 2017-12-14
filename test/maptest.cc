@@ -32,7 +32,7 @@ void testCase1() {
     stdMap<int, std::string> map1;
     map1.insert({1, "marvin"});
     myMap<int, std::string> map2;
-    map2.insert({1, "marvin"});
+    map2.insert(pair<int, std::string>(1, "marvin"));
     assert(container_equal(map1, map2));
 }
 
