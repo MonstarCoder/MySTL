@@ -210,8 +210,7 @@ public:
     {
         ++count;
     }
-
-    virtual ~testItem()
+    ~testItem()
     {
         --count;
     }
@@ -225,7 +224,6 @@ private:
 };
 int testItem::count = 0;
 
-/*
 void testCase15()
 {
     assert(testItem::getCount() == 0);
@@ -248,7 +246,6 @@ void testCase15()
     assert(testItem::getCount() == 0);
 
 }
-*/
 
 void testAllCases() {
     testCase1();
