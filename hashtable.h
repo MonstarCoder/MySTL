@@ -179,8 +179,7 @@ public:
         copy_from(ht);
     }
 
-    hashtable& operator=(const hashtable& ht)
-    {
+    hashtable& operator=(const hashtable& ht) {
         if (&ht != this) {
             clear();
             hash = ht.hash;
@@ -198,8 +197,7 @@ public:
     size_type max_size() const { return size_type(-1); }
     bool empty() const { return size() == 0; }
 
-    void swap(hashtable& ht)
-    {
+    void swap(hashtable& ht) {
         std::swap(hash, ht.hash);
         std::swap(equals, ht.equals);
         std::swap(get_key, ht.get_key);
@@ -216,8 +214,7 @@ public:
 
     iterator end() { return iterator(0, this); }
 
-    const_iterator begin() const
-    {
+    const_iterator begin() const {
         for (size_type n = 0; n < buckets.size(); ++n)
             if (buckets[n])
                 return const_iterator(buckets[n], this);
@@ -244,8 +241,7 @@ public:
     }
 
     // 插入操作, 不允许重复
-    pair<iterator, bool> insert_unique(const value_type& obj)
-    {
+    pair<iterator, bool> insert_unique(const value_type& obj) {
         // 首先判断容量是否够用, 否则就重新配置
         resize(num_elements + 1);
         return insert_unique_noresize(obj);
@@ -257,7 +253,9 @@ public:
         return insert_equal_noresize(obj);
     }
 
-    pair<iterator, bool> insert_unique_noresize(const value_type& obj);
+    pair<iterator, bool>
+    insert_unique_noresize(const value_type& obj);
+
     iterator insert_equal_noresize(const value_type& obj);
 
     template <typename InputIterator>
@@ -270,8 +268,9 @@ public:
         insert_equal(f, l, iterator_category(f));
     }
 
-    template <typename InputIterator> void insert_unique(InputIterator f, InputIterator l,
-                                                         input_iterator_tag) {
+    template <typename InputIterator>
+    void insert_unique(InputIterator f, InputIterator l,
+                       input_iterator_tag) {
         for ( ; f != l; ++f)
             insert_unique(*f);
     }
@@ -678,16 +677,16 @@ inline void
 hashtable<V, K, HF, Ex, Eq, A>::erase(const_iterator first,
         const_iterator last) {
     erase(iterator(const_cast<node*>(first.cur),
-                const_cast<hashtable*>(first.ht)),
-            iterator(const_cast<node*>(last.cur),
-                const_cast<hashtable*>(last.ht)));
+          const_cast<hashtable*>(first.ht)),
+          iterator(const_cast<node*>(last.cur),
+          const_cast<hashtable*>(last.ht)));
 }
 
 template <typename V, typename K, typename HF, typename Ex, typename Eq, typename A>
 inline void
 hashtable<V, K, HF, Ex, Eq, A>::erase(const const_iterator& it) {
     erase(iterator(const_cast<node*>(it.cur),
-                const_cast<hashtable*>(it.ht)));
+          const_cast<hashtable*>(it.ht)));
 }
 
 // 调整hashtable的容量
