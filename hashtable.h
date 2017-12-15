@@ -98,8 +98,8 @@ struct _hashtable_const_iterator {
     const_iterator& operator++();
     const_iterator operator++(int);
 
-    bool operator==(const iterator& it) const { return cur == it.cur; }
-    bool operator!=(const iterator& it) const { return cur != it.cur; }
+    bool operator==(const const_iterator& it) const { return cur == it.cur; }
+    bool operator!=(const const_iterator& it) const { return cur != it.cur; }
 }; // struct _hashtable_const_iterator
 
 // 素数表
@@ -128,7 +128,7 @@ inline unsigned long next_prime(unsigned long n) {
 // EqualKey:    判断键值是否相同的方法
 // Alloc:       allocator, 默认为alloc（见前置声明）
 template<typename Value, typename Key, typename HashFcn,
-         typename ExtractKey, typename EqualKey, typename Alloc = alloc>
+         typename ExtractKey, typename EqualKey, typename Alloc>
 class hashtable {
 public:
     typedef Key                  key_type;
@@ -285,8 +285,7 @@ public:
     template <typename ForwardIterator>
     void insert_unique(ForwardIterator f, ForwardIterator l,
                        forward_iterator_tag) {
-        size_type n = 0;
-        distance(f, l, n);
+        size_type n = std::distance(f, l);
         resize(num_elements + n);
         for ( ; n > 0; --n, ++f)
             insert_unique_noresize(*f);
@@ -295,8 +294,7 @@ public:
     template <typename ForwardIterator>
     void insert_equal(ForwardIterator f, ForwardIterator l,
                       forward_iterator_tag) {
-        size_type n = 0;
-        distance(f, l, n);
+        size_type n = std::distance(f, l);
         resize(num_elements + n);
         for ( ; n > 0; --n, ++f)
             insert_equal_noresize(*f);
