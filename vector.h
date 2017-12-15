@@ -93,6 +93,7 @@ public:
 
     //访问元素相关
     reference operator[](size_type n) { return *(begin() + n); }
+    const_reference operator[](size_type n) const { return *(begin() + n); }
     reference at(size_type n) const;
     const_reference front() const { return *(begin()); }
     const_reference back() const { return *(end() - 1); }
