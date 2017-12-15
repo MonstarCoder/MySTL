@@ -34,21 +34,21 @@ private:
                       EqualKey, Alloc> ht;
     ht rep; // 以hashtable为底层容器
 public:
-typedef typename ht::key_type           key_type;
-typedef typename ht::value_type         value_type;
-typedef typename ht::hasher             hasher;
-typedef typename ht::key_equal          key_equal;
+    typedef typename ht::key_type           key_type;
+    typedef typename ht::value_type         value_type;
+    typedef typename ht::hasher             hasher;
+    typedef typename ht::key_equal          key_equal;
 
-// 注意: reference, pointer, iterator都为const, 因为不能修改hashtable
-// 内部的元素, 否则会导致hashtable失效
-typedef typename ht::size_type          size_type;
-typedef typename ht::difference_type    difference_type;
-typedef typename ht::const_pointer      pointer;
-typedef typename ht::const_pointer      const_pointer;
-typedef typename ht::const_reference    reference;
-typedef typename ht::const_reference    const_reference;
-typedef typename ht::const_iterator     iterator;
-typedef typename ht::const_iterator     const_iterator;
+    // 注意: reference, pointer, iterator都为const, 因为不能修改hashtable
+    // 内部的元素, 否则会导致hashtable失效
+    typedef typename ht::size_type          size_type;
+    typedef typename ht::difference_type    difference_type;
+    typedef typename ht::const_pointer      pointer;
+    typedef typename ht::const_pointer      const_pointer;
+    typedef typename ht::const_reference    reference;
+    typedef typename ht::const_reference    const_reference;
+    typedef typename ht::const_iterator     iterator;
+    typedef typename ht::const_iterator     const_iterator;
 
 public:
     unordered_set() : rep(100, hasher(), key_equal()) {}
@@ -89,8 +89,8 @@ public:
       pair<typename ht::iterator, bool> p = rep.insert_unique(obj);
       return pair<iterator, bool>(p.first, p.second);
     }
-template<typename InputIterator>
-void insert(InputIterator f, InputIterator l) { rep.insert_unique(f,l); }
+    template<typename InputIterator>
+    void insert(InputIterator f, InputIterator l) { rep.insert_unique(f,l); }
 
     pair<iterator, bool> insert_noresize(const value_type& obj) {
         pair<typename ht::iterator, bool> p = rep.insert_unique_noresize(obj);
