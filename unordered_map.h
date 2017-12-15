@@ -132,6 +132,13 @@ inline bool operator==(const unordered_map<Key, T, HashFcn, EqualKey, Alloc>& hm
 return hm1.rep == hm2.rep;
 }
 
+// 特例化swap
+template <typename Key, typename T, typename HashFcn, typename EqualKey, typename Alloc>
+inline void swap(hash_map<Key, T, HashFcn, EqualKey, Alloc>& hm1,
+                 hash_map<Key, T, HashFcn, EqualKey, Alloc>& hm2) {
+  hm1.swap(hm2);
+}
+
 } // namespace mystl
 
 #endif
