@@ -1,5 +1,5 @@
-#ifndef MYSTL_SET_TEST_H_
-#define MYSTL_SET_TEST_H_
+#ifndef MYSTL_UNORDERED_SET_TEST_H_
+#define MYSTL_UNORDERED_SET_TEST_H_
 
 #include "testutil.h"
 #include "../unordered_set.h"
