@@ -121,14 +121,14 @@ inline unsigned long next_prime(unsigned long n) {
     return pos == last ? *(last - 1) : *pos;
 }
 
-// Value:       结点的valule类型
-// Key:         结点的key类型
+// Value:       节点的value类型
+// Key:         节点的key类型
 // HashFcn:     hash function
-// ExtractKey:  从结点中取出键值的方法
+// ExtractKey:  从节点中取出键值的方法
 // EqualKey:    判断键值是否相同的方法
-// Alloc:       allocator, 默认alloc
+// Alloc:       allocator, 默认为alloc（见前置声明）
 template<typename Value, typename Key, typename HashFcn,
-         typename ExtractKey, typename EqualKey, typename Alloc>
+         typename ExtractKey, typename EqualKey, typename Alloc = alloc>
 class hashtable {
 public:
     typedef Key                  key_type;
