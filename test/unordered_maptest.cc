@@ -1,11 +1,11 @@
-#include "maptest.h"
+#include "unordered_maptest.h"
 #include "../pair.h"
 
 #include <algorithm>
 #include <string>
 
 namespace mystl{
-namespace maptest {
+namespace unordered_maptest {
 
 template<typename Container1, typename Container2>
 bool container_equal(Container1& con1, Container2& con2) {
@@ -29,11 +29,11 @@ bool container_equal(Container1& con1, Container2& con2) {
 }
 
 void testCase1() {
-    stdMap<int, std::string> map1;
-    map1.insert({1, "marvin"});
-    myMap<int, std::string> map2;
-    map2.insert(pair<int, std::string>(1, "marvin"));
-    assert(container_equal(map1, map2));
+    stdUMap<int, std::string> umap1;
+    umap1.insert({1, "marvin"});
+    myUMap<int, std::string> umap2;
+    umap2.insert(pair<int, std::string>(1, "marvin"));
+    assert(container_equal(umap1, umap2));
 }
 
 void testCase2() {
@@ -60,5 +60,5 @@ void testAllCases() {
     testCase5();
 }
 
-} // namespace maptest
+} // namespace unordered_maptest
 } // namespace mystl
