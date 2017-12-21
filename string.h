@@ -10,20 +10,21 @@
 #include <cstring>
 #include <utility> // for std::swap
 #include <memory> // for copy
+#include <type_traits> // for is_integral
 #include <iostream>
 
 namespace mystl {
 
 class string {
 public:
-    typedef char                        value_type;
-    typedef char*                       iterator;
-    typedef const char*                 const_iterator;
-    typedef char&                       reference;
-    typedef const char&                 const_reference;
-    typedef size_t                      size_type;
-    typedef ptrdiff_t                   difference_type;
-    static const size_t s_max = -1; // size_t的最大可能值
+    typedef char            value_type;
+    typedef char*           iterator;
+    typedef const char*     const_iterator;
+    typedef char&           reference;
+    typedef const char&     const_reference;
+    typedef size_t          size_type;
+    typedef ptrdiff_t       difference_type;
+    static const size_t     s_max = -1; // size_t的最大可能值
 protected:
     char* start_;
     char* finish_;
@@ -36,16 +37,16 @@ public:
     string(const string& str);
     string(string&& str);
     string(const string& str, size_type pos, size_type n = s_max);
-    string(const char*);
+    string(const char* s);
     string(const char* s, size_type n);
     string(size_type n, char c);
     template<typename InputIterator>
     string(InputIterator first, InputIterator last);
 
     string& operator=(const string& str);
-    string& operator=(string& str);
+    string& operator=(string&& str);
     string& operator=(const char* s);
-    string& operator=(char* s);
+    string& operator=(char c);
 
     ~string();
 
@@ -145,7 +146,8 @@ public:
     }
 
     string substr(size_type pos = 0, size_type len = s_max) const {
-        // TODO
+        len = equal_smax(len, size(), pos);
+        return string(begin() + pos, begin() + pos + len);
     }
 
     int compare(const string& str) const;
@@ -178,7 +180,26 @@ public:
     size_type find_last_not_of(char c, size_type pos = s_max) const;
 
 private:
-    // TODO
+    void string_aux(size_type n, char c, std::true_type);
+    template<typename InputIterator>
+    void string_aux(InputIterator, first, InputIterator last, std::false_type);
+    void deallocate() {
+        if (start_)
+            data_allocator::deallocate(start_, end_of_storage_ - start_);
+    }
+    void allocate_and_fill(iterator p, size_type n, value_type c);
+    template<typename InputIterator>
+    void allocate_and_copy(InputIterator first, InputIterator last);
+    // 插入剩余空间不足时的辅助函数
+    template<typename InputIterator>
+    iterator insert_copy_aux(iterator p, InputIterator first, InputIterator last);
+    iterator insert_fill_aux(iterator p, size_type n, value_type c);
+    // 如果n等于s_max,则改变其值
+    size_type equal_smax(size_type n, size_type end, size_type start);
+    int compare_aux(size_type pos, size_type len, const_iterator cit,
+                    size_type subpos, size_type sublen) const;
+    size_type find_aux(const_iterator cit, size_type pos,
+                       size_type len, size_type cond) const;
 
 public:
     friend std::ostream& operator<<(std::ostream& os, const string& str);
@@ -212,6 +233,84 @@ public:
     friend std::istream& getline(std::istream& is, string& str);
 }; // class string
 
+template<typename InputIterator>
+string::string(InputIterator first, InputIterator last) {
+    // 处理指针和数字间区别的函数
+    string_aux(first, last, typename std::is_integral<InputIterator>::type());
+}
+
+template<typename InputIterator>
+typename string::iterator
+string::insert_copy_aux(iterator p, InputIterator first, InputIterator last) {
+    size_type len_insert = last - first;
+    size_type old_capacity = capacity();
+    auto res = std::max(old_capacity, len_insert);
+    // 新的容量分配
+    auto new_capacity = old_capacity + res;
+    iterator new_start_ = data_allocator::allocate(new_capacity);
+    iterator new_finish_ = std::uninitialized_copy(start_, p, new_start_);
+    new_finish_ = std::uninitialized_copy(first, last, new_finish_);
+    auto res = new_finish_;
+    new_finish_ = std::uninitialized_copy(p, finish_, new_finish_);
+
+    destroy(start_, finish_);
+    deallocate();
+    start_ = new_start_;
+    finish_ = new_finish_;
+    end_of_storage_ = start_ + new_capacity;
+    return res;
+}
+
+template<typename InputIterator>
+typename string::iterator
+string::insert(iterator p, InputIterator first, InputIterator last) {
+    if (first == last) return 0;
+    size_type len_left = capacity() - size();
+    size_type len_insert = std::distance(first, last);
+    if (len_left >= len_insert) {
+        for (auto it = finish_ - 1; it >= p; --it) {
+            *(it + len_insert) = *(it);
+        }
+        std::uninitialized_copy(first, last, p);
+        finish_ += len_insert;
+        return (p + len_insert);
+    } else {
+        return insert_copy_aux(p, first, last);
+    }
+}
+
+template<typename InputIterator>
+string& string::append(InputIterator first, InputIterator last) {
+    insert(end(), first, last);
+    return *this;
+}
+
+template<typename InputIterator>
+string&
+string::replace(iterator it1, iterator it2, InputIterator first, InputIterator last) {
+    auto ptr = erase(it1, it2);
+    insert(ptr, first, last);
+    return *this;
+}
+
+template<typename InputIterator>
+string& string::assign(InputIterator first, InputIterator last) {
+    erase(start_, finish_);
+    insert(start_, first, last);
+    return *this;
+}
+
+template<typename InputIterator>
+void string::allocate_and_copy(InputIterator first, InputIterator last) {
+    start_ = data_allocator::allocate(last - first);
+    finish_ = std::uninitialized_copy(first, last, start_);
+    end_of_storage_ = finish_;
+}
+
+template<typename InputIterator>
+void string::string_aux(InputIterator first, InputIterator last, std::false_type) {
+    allocate_and_copy(first, last);
+}
 
 } // namespace mystl
 
