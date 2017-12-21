@@ -5,6 +5,12 @@ namespace mystl {
 const size_t string::s_max; // 类内静态成员声明
 
 // 构造，复制，析构相关
+void string::allocate_and_fill(size_type n, char c) {
+    start_ = data_allocator::allocate(n);
+    finish_ = std::uninitialized_fill_n(start_, n, c);
+    end_of_storage_ = finish_;
+}
+
 string::string(const string& str) {
     allocate_and_copy(str.start_, str.finish_);
 }
@@ -34,12 +40,15 @@ string::string(size_type n, char c) {
 }
 
 string& string::operator=(const string& str) {
-    swap(*this, str);
+    if (this !=&str) {
+        destroy(start_, finish_);
+        allocate_and_copy(str.start_, str.finish_);
+    }
     return *this;
 }
 
 string& string::operator=(string&& str) {
-    swap(*this, str);
+    swap(str);
     str.start_ = str.finish_ = str.end_of_storage_ = 0;
     return *this;
 }
@@ -65,7 +74,7 @@ string::~string() {
 }
 
 typename string::size_type
-string::equal_smax(size_type n, size_type end, size_type start) {
+string::equal_smax(size_type n, size_type end, size_type start) const {
     return (n == s_max ? end - start : n);
 }
 
@@ -80,7 +89,7 @@ void string::resize(size_type n, char c) {
         finish_ = start_ + n;
     } else if (n > size() && n <= capacity()) {
         auto len = n - size();
-        finish_ = std::uninitialized_fill(finish_, len, c);
+        finish_ = std::uninitialized_fill_n(finish_, len, c);
     } else {
         size_type len_insert = n - size();
         size_type old_capacity = capacity();
@@ -88,7 +97,7 @@ void string::resize(size_type n, char c) {
         auto new_capacity = old_capacity + res;
         iterator new_start_ = data_allocator::allocate(new_capacity);
         iterator new_finish_ = std::uninitialized_copy(start_, finish_, new_start_);
-        new_finish_ = std::uninitialized_fill(new_finish_, len_insert, c);
+        new_finish_ = std::uninitialized_fill_n(new_finish_, len_insert, c);
 
         destroy(start_, finish_);
         deallocate();
@@ -98,7 +107,7 @@ void string::resize(size_type n, char c) {
     }
 }
 
-void string::reserve(size_type) {
+void string::reserve(size_type n) {
     if (n <= capacity()) return;
     iterator new_start_ = data_allocator::allocate(n);
     iterator new_finish_ = std::uninitialized_copy(start_, finish_, new_start_);
@@ -124,7 +133,7 @@ string& string::insert(size_type pos, size_type n, char c) {
     return *this;
 }
 
-string& strong::insert(size_type pos, const string& str) {
+string& string::insert(size_type pos, const string& str) {
     insert(start_ + pos, str.start_, str.finish_);
     return *this;
 }
@@ -143,8 +152,8 @@ string::insert_fill_aux(iterator p, size_type n, value_type c){
     auto new_capacity = old_capacity + res;
     iterator new_start_ = data_allocator::allocate(new_capacity);
     iterator new_finish_ = std::uninitialized_copy(start_, p, new_start_);
-    new_finish_ = std::uninitialized_fill(new_finish_, n, c);
-    auto res = new_finish_;
+    new_finish_ = std::uninitialized_fill_n(new_finish_, n, c);
+    auto tmp = new_finish_;
     new_finish_ = std::uninitialized_copy(p, finish_, new_finish_);
 
     destroy(start_, finish_);
@@ -152,15 +161,15 @@ string::insert_fill_aux(iterator p, size_type n, value_type c){
     start_ = new_start_;
     finish_ = new_finish_;
     end_of_storage_ = start_ + new_capacity;
-    return res;
+    return tmp;
 }
 
-iterator string::insert(iterator p, size_type n, char c) {
+typename string::iterator string::insert(iterator p, size_type n, char c) {
     auto len_left = capacity() - size();
     if (n <= len_left) {
-        for (iterator it = finish_ - 1; it >= p; --ot)
+        for (iterator it = finish_ - 1; it >= p; --it)
             *(it + n) = *(it);
-        std::uninitialized_fill(p, n, c);
+        std::uninitialized_fill_n(p, n, c);
         finish_ += n;
         return (p + n);
     } else {
@@ -173,23 +182,23 @@ typename string::iterator string::insert(iterator p, char c) {
 }
 
 string& string::append(const char* s) {
-    insert(finish_, s);
+    insert(size(), s);
     return *this;
 }
 
 string& string::append(const char* s, size_type n) {
-    insert(finish_, s, n);
+    insert(size(), s, n);
     return *this;
 }
 
 string& string::append(const string& str) {
-    insert(finish_, str);
+    insert(size(), str);
     return *this;
 }
 
 string& string::append(const string& str, size_type subpos, size_type sublen) {
     sublen = equal_smax(sublen, str.size(), subpos);
-    insert(finish_, str, subpos, sublen);
+    insert(size(), str, subpos, sublen);
     return *this;
 }
 
@@ -199,12 +208,12 @@ string& string::append(size_type n, char c) {
 }
 
 string& string::operator+= (const string& str) {
-    insert(finish_, str);
+    insert(size(), str);
     return *this;
 }
 
 string& string::operator+= ( const char* s ) {
-    insert(finish_, s);
+    insert(size(), s);
     return *this;
 }
 
@@ -228,7 +237,7 @@ string& string::erase(size_type pos, size_type len) {
     return *this;
 }
 
-typename string;:iterator string::erase(iterator p) {
+typename string::iterator string::erase(iterator p) {
     return erase(p, p + 1);
 }
 
@@ -268,7 +277,7 @@ string& string::replace(size_type pos, size_type len, size_type n, char c) {
 }
 
 string& string::replace(iterator it1, iterator it2, size_type n, char c) {
-    autp ptr = erase(it1, it2);
+    auto ptr = erase(it1, it2);
     insert(ptr, n, c);
     return *this;
 }
@@ -278,7 +287,7 @@ string& string::assign(const string& str) {
 }
 
 string& string::assign(const string& str, size_type subpos, size_type sublen) {
-    assign(str.start_ + subpos, str.start+ + pos + sublen);
+    assign(str.start_ + subpos, str.start_ + subpos + sublen);
 }
 
 string& string::assign(const char* s) {
@@ -289,8 +298,8 @@ string& string::assign(const char* s, size_type n) {
     assign(s, n);
 }
 
-string& stirng::assign(size_type n, char c) {
-    autp ptr = erase(start_, finish_);
+string& string::assign(size_type n, char c) {
+    auto ptr = erase(start_, finish_);
     insert(ptr, n, c);
     return *this;
 }
@@ -338,8 +347,9 @@ int string::compare(size_type pos, size_type len,
     return compare_aux(pos, len, s, 0, n);
 }
 
-size_type string::find_aux(const cit, size_type pos,
-                           size_type len, size_type cond) const {
+typename string::size_type
+string::find_aux(const_iterator cit, size_type pos,
+                 size_type len, size_type cond) const {
     size_type i, j;
     for (i = pos; i != cond; ++i) {
         for (j = 0; j != len; ++j) {
@@ -352,23 +362,27 @@ size_type string::find_aux(const cit, size_type pos,
     return s_max;
 }
 
-size_type string::find(const string& str, size_type pos) const {
+typename string::size_type
+string::find(const string& str, size_type pos) const {
     size_type len = str.size();
     if (size() - pos < len)
         return s_max;
     return find_aux(str.cbegin(), pos, len, size());
 }
 
-size_type string::find(const char* s, size_type pos) const {
+typename string::size_type
+string::find(const char* s, size_type pos) const {
     return find(s, pos, strlen(s));
 }
 
-size_type find(const char* s, size_type pos, size_type n) const {
+typename string::size_type
+string::find(const char* s, size_type pos, size_type n) const {
     size_type len = strlen(s);
     return find_aux(s, pos, n, size());
 }
 
-size_type find(char c, size_type pos) const {
+typename string::size_type
+string::find(char c, size_type pos) const {
     for (auto cit = cbegin() + pos; cit != cend(); ++cit) {
         if (*cit == c)
             return cit - cbegin();
@@ -402,8 +416,14 @@ std::ostream& operator<<(std::ostream& os, const string& str) {
 }
 std::istream& operator>>(std::istream& is, string& str) {
     char ch;
-    typename string::size_type old_size = str.size(), index = 0;
-    //TODO
+    str.clear();
+    while (is.get(ch)) {
+        if (ch != EOF && isblank(ch) && ch != '\n') {
+            str.push_back(ch);
+        } else
+            break;
+    }
+    return is;
 }
 
 /*
@@ -437,11 +457,19 @@ void swap(string& x, string& y) {
 }
 
 std::istream& getline(std::istream& is, string& str, char delim) {
-
+    char ch;
+    str.clear();
+    while (is.get(ch)) {
+        if (ch == delim)
+            break;
+        else
+            str.push_back(ch);
+    }
+    return is;
 }
 
 std::istream& getline(std::istream& is, string& str) {
-
+    return getline(is, str, '\n');
 }
 
 }// namespace mystl
