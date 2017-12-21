@@ -178,16 +178,15 @@ public:
     size_type find_last_not_of(const char* s, size_type pos = s_max) const;
     size_type find_last_not_of(const char* s, size_type pos, size_type n) const;
     size_type find_last_not_of(char c, size_type pos = s_max) const;
-
 private:
     void string_aux(size_type n, char c, std::true_type);
     template<typename InputIterator>
-    void string_aux(InputIterator, first, InputIterator last, std::false_type);
+    void string_aux(InputIterator first, InputIterator last, std::false_type);
     void deallocate() {
         if (start_)
             data_allocator::deallocate(start_, end_of_storage_ - start_);
     }
-    void allocate_and_fill(iterator p, size_type n, value_type c);
+    void allocate_and_fill(size_type n, value_type c);
     template<typename InputIterator>
     void allocate_and_copy(InputIterator first, InputIterator last);
     // 插入剩余空间不足时的辅助函数
@@ -195,12 +194,11 @@ private:
     iterator insert_copy_aux(iterator p, InputIterator first, InputIterator last);
     iterator insert_fill_aux(iterator p, size_type n, value_type c);
     // 如果n等于s_max,则改变其值
-    size_type equal_smax(size_type n, size_type end, size_type start);
+    size_type equal_smax(size_type n, size_type end, size_type start) const;
     int compare_aux(size_type pos, size_type len, const_iterator cit,
                     size_type subpos, size_type sublen) const;
     size_type find_aux(const_iterator cit, size_type pos,
                        size_type len, size_type cond) const;
-
 public:
     friend std::ostream& operator<<(std::ostream& os, const string& str);
     friend std::istream& operator>>(std::istream& is, string& str);
@@ -250,7 +248,7 @@ string::insert_copy_aux(iterator p, InputIterator first, InputIterator last) {
     iterator new_start_ = data_allocator::allocate(new_capacity);
     iterator new_finish_ = std::uninitialized_copy(start_, p, new_start_);
     new_finish_ = std::uninitialized_copy(first, last, new_finish_);
-    auto res = new_finish_;
+    auto tmp = new_finish_;
     new_finish_ = std::uninitialized_copy(p, finish_, new_finish_);
 
     destroy(start_, finish_);
@@ -258,7 +256,7 @@ string::insert_copy_aux(iterator p, InputIterator first, InputIterator last) {
     start_ = new_start_;
     finish_ = new_finish_;
     end_of_storage_ = start_ + new_capacity;
-    return res;
+    return tmp;
 }
 
 template<typename InputIterator>
