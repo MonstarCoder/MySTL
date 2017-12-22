@@ -32,10 +32,8 @@ public:
     void pop() { c.pop_front(); }
 
     template<typename Type, typename Container>
-    //　特定友元关系
     friend bool operator==(const queue<Type, Container>& x, const queue<Type, Container>& y);
     template<typename Type, typename Container>
-    //　特定友元关系
     friend bool operator<(const queue<Type, Container>& x, const queue<Type, Container>& y);
 }; // class queue
 
