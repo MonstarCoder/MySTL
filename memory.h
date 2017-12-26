@@ -1,6 +1,8 @@
 #ifndef MYSTL_MEMORY_H_
 #define MYSTL_MEMORY_H_
 
+#include "ref.h"
+
 #include <utility>
 
 namespace mystl {
@@ -46,13 +48,14 @@ public:
     unique_ptr(const unique_ptr&) = delete; // 不允许复制
     unique_ptr& operator=(const unique_ptr&) = delete;
 
-    ~unique_ptr() { claer(); }
+    ~unique_ptr() { clear(); }
 public:
     const pointer get() const { return data_; }
     pointer get() { return data_; }
     deleter_type& get_deleter() { return deleter; }
     const deleter_type& get_deleter() const { return deleter; }
 
+    // 重载bool运算符
     operator bool() const { return get() != nullptr; }
 
     pointer release() {
@@ -67,7 +70,7 @@ public:
     void swap(unique_ptr& up) { std::swap(data_, up.data_); }
 
     const element_type& operator*() const { return *data_; }
-    const pointer oerator->() const { return data_; }
+    const pointer operator->() const { return data_; }
     element_type& operator*() { return *data_; }
     pointer operator->() { return data_; }
 private:
@@ -80,6 +83,130 @@ private:
     deleter_type deleter; // 删除器
 }; // class unique_ptr
 
-} // namespace
+template<typename T, typename D>
+void swap(unique_ptr<T, D>& x, unique_ptr<T, D>& y) {
+    x.swap(y);
+}
+
+template<typename T1, typename D1, typename T2, typename D2>
+bool operator==(const unique_ptr<T1, D1>& lhs, const unique_ptr<T2, D2>& rhs) {
+    return lhs.get() == rhs.get();
+}
+
+template<typename T, typename D>
+bool operator==(const unique_ptr<T, D>& up, std::nullptr_t p) {
+    return up.get() = p;
+}
+
+template <typename T, typename D>
+bool operator==(std::nullptr_t p, const unique_ptr<T, D>& up){
+    return up.get() == p;
+}
+
+template <typename T1, typename D1, typename T2, typename D2>
+bool operator != (const unique_ptr<T1, D1>& lhs, const unique_ptr<T2, D2>& rhs){
+    return !(lhs == rhs);
+}
+
+template <typename T, typename D>
+bool operator != (const unique_ptr<T, D>& up, std::nullptr_t p){
+    return up.get() != p;
+}
+
+template <typename T, typename D>
+bool operator != (std::nullptr_t p, const unique_ptr<T, D>& up){
+    return up.get() != p;
+}
+
+template<typename T, typename... Args>
+unique_ptr<T> make_unique(Args&&... args) {
+    return unique_ptr<T>(new T(std::forward<Args>(args)...));
+}
+
+// shared_ptr
+template<typename T>
+class shared_ptr {
+public:
+    typedef T element_type;
+private:
+    template<typename Type>
+    using ref_t = mystl::ref_t<Type>;
+public:
+    explicit shared_ptr(T* p = nullptr) : ref_(new ref_t<T>(p)) {}
+    template<typename D>
+    shared_ptr(T* p, D del) : ref_(new ref_t<T>(p, del)) {}
+
+    shared_ptr(const shared_ptr& sp) {
+        copy_ref(sp.ref_);
+    }
+
+    shared_ptr& operator=(const shared_ptr& sp) {
+        if (this != &sp) {
+            decrease_ref();
+            copy_ref(sp.ref_);
+        }
+        return *this;
+    }
+
+    ~shared_ptr() { decrease_ref(); }
+
+    const element_type& operator*() const { return *(get()); }
+    const element_type* operator->() const { return get(); }
+    element_type& operator*() { return *(get()); }
+    element_type* operator->() { return get(); }
+
+    const element_type* get() const { return ref_->get_data(); }
+    element_type* get() { return ref_->get_data(); }
+    size_t use_count() const { return ref_->count(); }
+
+    // 重载bool运算符
+    operator bool() const { return get() != nullptr; }
+private:
+    void decrease_ref() { 
+        if (ref_->get_data()) {
+            --(*ref_);
+            if (use_count() == 0)
+            delete ref_;
+        }
+    }
+    void copy_ref(ref_t<T>* r) {
+        ref_ = r;
+        ++(*ref_);
+    }
+private:
+    ref_t<T>* ref_;
+}; // class shared_ptr
+
+template<typename T1, typename T2>
+bool operator==(const shared_ptr<T1>& lhs, const shared_ptr<T2>& rhs) {
+	return lhs.get() == rhs.get();
+}
+template<typename T>
+bool operator==(const shared_ptr<T>& sp, std::nullptr_t p) {
+	return sp.get() == p;
+}
+template<typename T>
+bool operator==(std::nullptr_t p, const shared_ptr<T>& sp){
+	return sp == p;
+}
+template<typename T1, typename T2>
+bool operator!=(const shared_ptr<T1>& lhs, const shared_ptr<T2>& rhs){
+	return !(lhs == rhs);
+}
+template<typename T>
+bool operator!=(const shared_ptr<T>& sp, std::nullptr_t p){
+	return !(sp == p);
+}
+template<typename T>
+bool operator!=(std::nullptr_t p, const shared_ptr<T>& sp){
+	return !(sp == p);
+}
+
+template<typename T, typename...Args>
+shared_ptr<T> make_shared(Args... args){
+	return shared_ptr<T>(new T(std::forward<Args>(args)...));
+}
+
+} // namespace mystl
 
 #endif
