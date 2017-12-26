@@ -95,7 +95,7 @@ bool operator==(const unique_ptr<T1, D1>& lhs, const unique_ptr<T2, D2>& rhs) {
 
 template<typename T, typename D>
 bool operator==(const unique_ptr<T, D>& up, std::nullptr_t p) {
-    return up.get() = p;
+    return up.get() == p;
 }
 
 template <typename T, typename D>
