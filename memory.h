@@ -74,7 +74,7 @@ public:
     element_type& operator*() { return *data_; }
     pointer operator->() { return data_; }
 private:
-    inline void clear() {
+    jikinline void clear() {
         deleter(data_);
         data_ = nullptr;
     }
