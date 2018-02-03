@@ -1,6 +1,6 @@
 args = main.o alloc.o vectortest.o listtest.o dequetest.o queuetest.o \
 	   settest.o maptest.o unordered_settest.o unordered_maptest.o \
-	   string.o stringtest.o unique_ptrtest.o shared_ptrtest.o
+	   string.o stringtest.o unique_ptrtest.o shared_ptrtest.o algorithmtest.o
 
 a.out : $(args)
 	g++ -std=c++11 -g -o a.out $(args)
@@ -44,6 +44,9 @@ unique_ptrtest.o : ./test/unique_ptrtest.cc ./test/unique_ptrtest.h allocator.h\
 shared_ptrtest.o : ./test/shared_ptrtest.cc ./test/shared_ptrtest.h allocator.h\
 	memory.h construct.h ./test/testutil.h
 	g++ -std=c++11 -g -c ./test/shared_ptrtest.cc
+algorithmtest.o : ./test/algorithmtest.cc ./test/algorithmtest.h allocator.h\
+	construct.h ./test/testutil.h
+	g++ -std=c++11 -g -c ./test/algorithmtest.cc
 
 .PHONY : clean
 clean :
