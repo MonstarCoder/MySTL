@@ -9,6 +9,7 @@
 //#include "./test/unordered_settest.h"
 //#include "./test/unordered_maptest.h"
 //#include "./test/stringtest.h"
+//#include "./test/algorithmtest.h"
 
 using namespace mystl;
 
@@ -23,6 +24,7 @@ int main() {
     //mystl::unordered_settest::testAllCases();
     //mystl::unordered_maptest::testAllCases();
     //mystl::stringtest::testAllCases();
+    //mystl::algorithmtest::testAllCases();
 
 	return 0;
 }
