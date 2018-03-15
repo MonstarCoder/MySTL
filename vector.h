@@ -354,7 +354,7 @@ void vector<T, Alloc>::insert_aux(iterator position, const size_type& n, const v
         }
     } else { //内存不足，重新分配（原来的加上max(old_size, n)）
         const size_type old_size = size();
-        const size_type len = old_size != 0 ? std::max(n, old_size) : 1;
+        const size_type len = old_size + max(old_size, n);
         iterator new_start = data_allocator::allocate(len);
         iterator new_finish = new_start;
         try {
